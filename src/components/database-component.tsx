@@ -23,6 +23,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import { db, storage } from "../firebase"
 import Back from "./back"
 import LineCharter from "./line-chart"
+import AddItemButton from './add-item-button'
+import AddItemDialog from './add-item-dialog'
 
 
 
@@ -40,6 +42,8 @@ interface Props{
     dbCategory?:string
     loader?:any
     noTraining?:boolean
+    addItemTitle?:string
+    addItemIcon?:any
 }
 
 
@@ -1239,6 +1243,8 @@ const RenewID = async () => {
             {/* <AddRecordButton title={addButtonModeSwap?"Delete Record(s)":"Add Record"} onClickSwap={addButtonModeSwap} onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
                 icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:<Plus color="dodgerblue" width="1rem"/>}/> */}
 
+            <AddItemButton title={props.addItemTitle} icon={props.addItemIcon} onClick={()=>setAddDialog(true)}/>
+
 
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
 
@@ -1389,6 +1395,8 @@ const RenewID = async () => {
             }/>
 
             {/* ADD RECORD DIALOG */}
+
+            <AddItemDialog open={addDialog} title='Add Vehicle' onCancel={()=>setAddDialog(false)}/>
 
             {/* <AddRecordDialog open={addDialog} onCancel={()=>{setAddDialog(false);setEditedName("")}}
             updating={loading}

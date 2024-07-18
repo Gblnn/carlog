@@ -53,11 +53,9 @@ export default function InputDialog(props:Props){
             <DialogContent onOpenAutoFocus={(e)=>e.preventDefault()}>
                 <DialogHeader>
                     <DialogTitle className="heading" style={{userSelect:"none", width:"100%", display:"flex", flexFlow:"column"}}>
-
                         
                         
-                        
-                        <div className="flex" style={{border:"", textAlign:"left", display:"flex", justifyContent:"flex-start"}}>
+                        <div className="flex" style={{border:"", textAlign:"left", display:"flex", justifyContent:"flex-start", fontSize:"1.25rem", padding:"0.5rem", paddingBottom:"1rem", borderBottom:"1px solid rgba(100 100 100/ 50%)", marginBottom:"0.5rem"}}>
                             {props.titleIcon}
                             {props.title}
                         </div>
