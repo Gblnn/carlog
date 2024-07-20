@@ -36,7 +36,7 @@ export default function Login(){
         <div style={{display:"flex", width:'100%', height:"100svh", justifyContent:'center', alignItems:'center', flexFlow:"column"}}>
             <p style={{position:"absolute", top:0, left:0, margin:"2.5rem", fontSize:"2rem", fontWeight:"600"}}>LOGIN</p>
 
-            <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", width:"28ch", position:"absolute", bottom:0, margin:"3.5rem"}}>
+            <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", width:"80%", position:"absolute", bottom:0, margin:"3.5rem"}}>
 
             <Button onClick={()=>usenavigate("/")} variant={"ghost"}>
                 <CreditCard color="dodgerblue" width={"1.25rem"}/>
