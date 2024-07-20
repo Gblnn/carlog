@@ -18,7 +18,7 @@ export default function IndexComponent(props:Props){
     const usenavigate = useNavigate()
 
     return(
-        <div style={{padding:"1.5rem", background:"linear-gradient(rgba(18 18 80/ 65%), rgba(100 100 100/ 0%))", height:"90svh", border:""}}>
+        <div style={{padding:"1.25rem", background:"linear-gradient(rgba(18 18 80/ 65%), rgba(100 100 100/ 0%))", height:"90svh", border:""}}>
 
             <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
 
