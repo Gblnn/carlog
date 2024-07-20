@@ -16,7 +16,7 @@ export default function Back(props:Props){
                 {props.noback?
                 null
                 :
-                <button onClick={()=>{usenavigate(-1)}} style={{ backdropFilter:"blur(16px)"}}>
+                <button onClick={()=>{usenavigate(-1)}} style={{ backdropFilter:"blur(16px)", marginRight:"0.5rem"}}>
                     <ChevronLeft/>
                 </button>
                 }
