@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
@@ -592,10 +592,10 @@ export default function DbComponent(props:Props){
                 </div>
             }
             extra={
-                <div style={{display:"flex", flexFlow:"column", paddingTop:"0.5rem", gap:"0.5rem"}}>
-                    <Directive icon={<User width={"1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
-                    <Directive icon={<CalendarDaysIcon width={"1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
-                    <Directive icon={<Car width={"1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
+                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                    <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
+                    <Directive icon={<CalendarDaysIcon width={"1.1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
+                    <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
                     
                 </div>
             }
