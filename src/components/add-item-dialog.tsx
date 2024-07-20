@@ -4,6 +4,7 @@ import InputDialog from "./input-dialog";
 interface Props{
     open?:boolean
     title?:string
+    titleIcon?:any
     onImageChange?:any
     onOK?:any
     onCancel?:any
@@ -34,7 +35,8 @@ export default function AddItemDialog(props:Props){
         <InputDialog open={props.open} OkButtonIcon={<Plus width={"1rem"}/>} 
 
             title={props.title}
-
+            titleIcon={props.titleIcon}
+            onOk={props.onOK}
             // image={<input type="file" style={{fontSize:"0.8rem"}} onChange={props.onImageChange}/>}
             // title={props.title} OkButtonText="Add" onCancel={props.onCancel} onOk={props.onOK}
 
@@ -54,7 +56,7 @@ export default function AddItemDialog(props:Props){
             input2Label={props.VehicleNameLabel}
             input3Label={props.VehicleOwnerLabel}
             input4Label={props.ChasisNumberLabel}
-            input5Label={props.ModelNumberOnChange}
+            input5Label={props.ModelNumberLabel}
 
             input1Value={props.VehicleNumberValue}
             input2Value={props.VehicleNameValue}

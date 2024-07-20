@@ -1,154 +1,74 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import emailjs from '@emailjs/browser'
-import { message, Tooltip } from 'antd'
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore'
-import {
-    deleteObject,
-    ref
-} from "firebase/storage"
+import { message } from 'antd'
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { BellOff, BellRing, Book, Car, CheckSquare2, CircleDollarSign, CloudUpload, CreditCard, Disc, EllipsisVerticalIcon, Globe, GraduationCap, HandHelping, HeartPulse, InboxIcon, MailCheck, MinusSquareIcon, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Sparkles, User, UserCircle, X } from "lucide-react"
-import moment from 'moment'
+import { CalendarDaysIcon, Car, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import ReactTimeAgo from 'react-time-ago'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
 import Directive from "../components/directive"
-import DropDown from "../components/dropdown"
 import FileInput from "../components/file-input"
-import InputDialog from "../components/input-dialog"
 import SearchBar from "../components/searchbar"
-import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
-import { db, storage } from "../firebase"
-import Back from "./back"
-import LineCharter from "./line-chart"
+import { db } from "../firebase"
 import AddItemButton from './add-item-button'
 import AddItemDialog from './add-item-dialog'
+import Back from "./back"
+import DropDown from './dropdown'
+import SelectMenu from './select-menu'
 
-
-
-type Record = {
-    id:string,
-    name:string
-}
 
 // Running Notes
 // Check whether expiry date minus 3 is equals to today - 3 month reminder
 
 interface Props{
     title?:string
-    db?:string
+    db:string
     dbCategory?:string
     loader?:any
     noTraining?:boolean
     addItemTitle?:string
     addItemIcon?:any
+    type?:string
 }
 
 
 export default function DbComponent(props:Props){
 
-    const [companyName, setCompanyName] = useState("")
-
-    const usenavigate = useNavigate()
+    // const usenavigate = useNavigate()
+    
     // BASIC PAGE VARIABLES
-    // const [pageLoad, setPageLoad] = useState(false)
-    const [notify, setNotify] = useState(true)
     const [records, setRecords] = useState<any>([])
-    const [name, setName] = useState("")
     const [id, setID] = useState("")
-    const [recordSummary, setRecordSummary] = useState(false)
-    const [civil, setCivil] = useState(false)
-    const [vehicle, setVehicle] = useState(false)
-    const [addcivil, setAddcivil] = useState(false)
-    const [modified_on, setModifiedOn] = useState<any>()
     const [loading, setLoading] = useState(false)
     const [addButtonModeSwap, setAddButtonModeSwap] = useState(false)
-    const [deleteMedicalIDdialog, setDeleteMedicalIDdialog] = useState(false)
-    // const [email, setEmail] = useState("")
 
+    const [vehicleNumber, setVehicleNumber] = useState("")
+    const [vehicleName, setVehicleName] = useState("")
+    const [vehicleOwner, setVehicleOwner] = useState("")
+    const [chasisNumber, setChasisNumber] = useState("")
+    const [modelNumber, setModelNumber] = useState("")
 
-    // const [editedName, setEditedName] = useState("")
-    // const [editedEmail, setEditedEmail] = useState("")
-    // const [editedEmployeeCode, setEditedEmployeeCode] = useState("")
-    // const [editedCompanyName, setEditedCompanyName] = useState("")
-    // const [editedDateofJoin, setEditedDateofJoin] = useState("")
-    // const [editedSalarybasic, setEditedSalaryBasic] = useState("")
-    // const [editedAllowance, setEditedAllowance] = useState("")
+    const [deleteDialog, setDeleteDialog] = useState(false)
+    const [editDialog, setEditDialog] = useState(false)
 
+    const [editedVehicleNumber, setEditedVehicleNumber] = useState("")
+    const [editedVehicleName, setEditedVehicleName] = useState("")
+    const [editedVehicleOwner, setEditedVehicleOwner] = useState("")
+    const [editedChasisNumber, setEditedChasisNumber] = useState("")
+    const [editedModelNumber, setEditedModelNumber] = useState("")
 
-    const [image, setImage] = useState("")
-
-    // CIVIL ID VARIABLES
-    const [civil_number, setCivilNumber] = useState<any>()
-    // const [new_civil_number, setNewCivilNumber] = useState<any>()
-    // const [new_civil_expiry, setNewCivilExpiry] = useState<any>()
-    const [civil_expiry, setCivilExpiry] = useState<any>()
-    const [civil_DOB, setCivilDOB] = useState<any>()
-
-    //EDIT CIVIL ID VARIABLES
-    const [edited_civil_number, setEditedCivilNumber] = useState("")
-    const [edited_civil_expiry, setEditedCivilExpiry] = useState<any>()
-    const [edited_civil_DOB, setEditedCivilDOB] = useState("")
-    const [civilDelete, setCivilDelete] = useState(false)
-
-    const [edited_vehicle_number, setEditedVehicleNumber] = useState("")
-    const [edited_vehicle_issue, setEditedVehicleIssue] = useState("")
-    const [edited_vehicle_expiry, setEditedVehicleExpiry] = useState("")
-
-    const [editedPassportID, setEditedPassportID] = useState("")
-    const [editedPassportIssue, setEditedPassportIssue] = useState("")
-    const [editedPassportExpiry, setEditedPassportExpiry] = useState<any>()
-
-    const [passportDialog, setPassportDialog] = useState(false)
-
-    const [editedCompletedOn, setEditedCompletedOn] = useState("")
-    const [editedDueOn, setEditedDueOn] = useState<any>()
+    const [itemDialog, setItemDialog] = useState(false)
+    const [logDialog, setLogDialog] = useState(false)
 
     //MAIL CONFIG VARIABLES
     const [addDialog, setAddDialog] = useState(false)
-    const [userDeletePrompt, setUserDeletePrompt] = useState(false)
-    // const [userEditPrompt, setUserEditPrompt] = useState(false)
-    const [editcivilprompt, setEditcivilprompt] = useState(false)
-    const [valeTrainingDialog, setValeTrainingDialog] = useState(false)
-    const [renewMedicalIDdialog, setRenewMedicalIDdialog] = useState(false)
-    const [renewPassportDialog, setRenewPassportDialog] = useState(false)
 
     //MAIL CONFIG VALUES
     const [mailconfigdialog, setMailConfigDialog] = useState(false)
     const [recipient, setRecipient] = useState("")
     const [testmessage, setTestMessage] = useState("")
 
-    //VEHICLE ID VARIABLES
-    const [vehicle_number, setVehicleNumber] = useState("")
-    const [vehicle_issue, setVehicleIssue] = useState("")
-    const [vehicle_expiry, setVehicleExpiry] = useState<any>()
-    const [vehicle_year, setVehicleYear] = useState("")
-
-    const [medical_completed_on, setCompletedOn] = useState("")
-    const [medical_due_on, setDueOn] = useState<any>()
-    const [MedicalIDdialog, setMedicalIDdialog] = useState(false)
-
-    const [passportID, setPassportID] = useState("")
-    const [passportIssue, setPassportIssue] = useState("")
-    const [passportExpiry, setPassportExpiry] = useState<any>()
-
-    const [addPassportDialog, setAddPassportDialog] = useState(false)
-
-    const [vehicleIdDelete, setVehicleIdDelete] = useState(false)
-    const [edit_vehicle_id_prompt, setEditVehicleIDprompt] = useState(false)
-    const [editMedicalIDdialog, setEditMedicalIDdialog] = useState(false)
-    const [editPassportDialog, setEditPassportDialog] = useState(false)
-
-    const [DeletePassportDialog, setDeletePassportDialog] = useState(false)
-
-    const [trainingAddDialog, setTrainingAddDialog] = useState(false)
-    const [trainingAddDialogTitle, setTrainingAddDialogTitle] = useState("")
-    const [EditedTrainingAddDialogInput, setEditedTrainingAddDialogInput] = useState("")
-    const [trainingAddDialogInputValue, setTrainingAddDialogInputValue] = useState("")
-
-    const [add_vehicle_id, setAddVehicleID] = useState(false)
 
     const [excel_upload_dialog, setExcelUploadDialog] = useState(false)
 
@@ -156,73 +76,24 @@ export default function DbComponent(props:Props){
     const [search, setSearch] = useState("")
 
     const [checked, setChecked] = useState<any>([])
-    const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false)
-
-    // const [recipientsDialog, setRecipientsDialog] = useState(false)
-
-    const [progress, setProgress] = useState("")
 
     const [selected, setSelected] = useState(false)
     const [fetchingData, setfetchingData] = useState(false)
     const [status, setStatus] = useState("")
 
-    const [renewDocDialog, setRenewDocDialog] = useState(false)
     const [selectAll, setSelectAll] = useState(false)
-    const [renewVehicleDialog, setRenewVehicleDialog] = useState(false)
-
-    const [newExpiry, setNewExpiry] = useState<any>()
+    
 
     // MAILJS VARIABLES
     const serviceId = "service_lunn2bp";
     const templateId = "template_1y0oq9l";
 
-    const today = new Date()
-
-
-    const [progressItem, setProgressItem] = useState("")
-    const [trainingDialog, setTrainingDialog] = useState(false)
-    const [healthDialog, setHealthDialog] = useState(false)
-
-    const [notifyLoading, setNotifyLoading] = useState(false)
-
-    const [trainingType, setTrainingType] = useState("")
-
-    const [vt_hse_induction, setHseInduction] = useState<any>()
-    const [vt_car_1, setVtCar1] = useState<any>()
-    const [vt_car_2, setVtCar2] = useState<any>()
-    const [vt_car_3, setVtCar3] = useState<any>()
-    const [vt_car_4, setVtCar4] = useState<any>()
-    const [vt_car_5, setVtCar5] = useState<any>()
-    const [vt_car_6, setVtCar6] = useState<any>()
-    const [vt_car_7, setVtCar7] = useState<any>()
-    const [vt_car_8, setVtCar8] = useState<any>()
-    const [vt_car_9, setVtCar9] = useState<any>()
-    const [vt_car_10, setVtCar10] = useState<any>()
-
-    // const [imageUpload, setImageUpload] = useState(null);
-    // const [fileName, setFileName] = useState("")
-    // const [imageUrl, setImageUrl] = useState("")
-    const [profileName, setProfileName] = useState("")
-
-    const [salaryDialog, setSalaryDialog] = useState(false)
-    const [employeeCode, setEmployeeCode] = useState("")
-    const [dateofJoin, setDateofJoin] = useState("")
-    const [salaryBasic, setSalaryBasic] = useState("")
-    const [allowance, setAllowance] = useState("")
-
-    const [allowanceDialog, setAllowanceDialog] = useState(false)
-
-    const [leaveLog, setLeaveLog] = useState(false)
-    const [leaveList, setLeaveList] = useState<any>([])
-    const [leaveFrom, setLeaveFrom] = useState<any>()
-    const [leaveTill, setLeaveTill] = useState<any>()
-
-    const [fetchingLeave, setFetchingLeave] = useState(false)
-    let days = 0
 {/* //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/}
 
+
+    // REALTIME AUTO UPDATE
     useEffect(()=>{
-        onSnapshot(query(collection(db, 'vehicles')), (snapshot:any) => {
+        onSnapshot(query(collection(db, props.db)), (snapshot:any) => {
             snapshot.docChanges().forEach((change:any) => {
               if (change.type === "added") {
                 fetchData()   
@@ -245,14 +116,13 @@ export default function DbComponent(props:Props){
         () => {
             
             setAddDialog(!addDialog)
-            setName("")
             flushHeldKeys
         }
     )
 
-    const TimeStamper = (date:any) => {
-        return Timestamp.fromDate(moment(date, "DD/MM/YYYY").toDate())  
-    }
+    // const TimeStamper = (date:any) => {
+    //     return Timestamp.fromDate(moment(date, "DD/MM/YYYY").toDate())  
+    // }
 
 
     // PAGE LOAD HANDLER
@@ -260,83 +130,50 @@ export default function DbComponent(props:Props){
         fetchData()
     },[])
 
-    useEffect(()=>{
-        
 
+    // INTERNET STATUS CHECKER
+    useEffect(()=>{
         window.addEventListener('online', () => {
             setStatus("true")
         });
         window.addEventListener('offline', () => {
             setStatus("false")
         });
-
-        
     })
 
+
+    // DISPLAY CONNECTION STATUS
     useEffect(()=>{
         if(status=="true"){
             message.success("Connection Established")
-            fetchData()
-            
-        }
-        
-        
+            fetchData()   
+        }    
         else if(status=="false"){
             message.error("Lost Connection.")
         }
-    
-        
-    },[status])
 
-    // const uploadFile = async () => {
-    //     if (imageUpload === null) {
-    //       message.info("No image attached");
-    //       return;
-    //     }
-    //     const imageRef = storageRef(storage, fileName);
-    
-    //     await uploadBytes(imageRef, imageUpload)
-    //       .then(async (snapshot) => {
-    //         await getDownloadURL(snapshot.ref)
-    //           .then((url:any) => {
-    //             setImageUrl(String(url))
-    //             console.log("Upload Complete : ", imageUrl, "link : ", url)
-    //           })
-    //           .catch((error) => {
-    //             message.error(error.message);
-    //             console.log(error.message)
-    //           });
-    //       })
-    //       .catch((error) => {
-    //         message.error(error.message);
-    //         console.log(error.message)
-    //       });
-    //   };
+    },[status])
 
 
     //INITIAL DATA FETCH ON PAGE LOAD
     const fetchData = async (type?:any) => {
         
-        try {
-            
+        try {    
             setfetchingData(true)
-            const RecordCollection = collection(db, "vehicles")
+            const RecordCollection = collection(db, props.db)
             const recordQuery = query(RecordCollection, orderBy("created_on"))
             const querySnapshot = await getDocs(recordQuery)
-            const fetchedData: Array<Record> = [];
+            const fetchedData:any = [];
 
             querySnapshot.forEach((doc:any)=>{
-                fetchedData.push({id: doc.id, ...doc.data()})
-                
+                fetchedData.push({id: doc.id, ...doc.data()})    
             })
-
-            
-
 
             setfetchingData(false)
             setRecords(fetchedData)
             setChecked([])
             setSelectable(false)
+
             type=="refresh"?
             message.success("Refreshed")
             :null
@@ -348,385 +185,43 @@ export default function DbComponent(props:Props){
         }   
     }
 
-    const fetchLeave = async () => {
-        setFetchingLeave(true)
-        const leaveQuery = query(collection(db, "leave-record"), orderBy("created_on", "desc"), where("employeeID", "==", id))
-        const snapshot = await getDocs(leaveQuery)
-        const LeaveData: Array<Record> = [];
 
-        snapshot.forEach(async(doc:any)=>{
-            LeaveData.push({id: doc.id, ...doc.data()})
-            setLeaveList(LeaveData)
-            days = days + doc.days
-        })
-        setFetchingLeave(false)
-        
-        
-
-    }
-
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
-const addLeave = async () => {
-    setLoading(true)
-    await addDoc(collection(db, "leave-record"), {employeeID:id,created_on:Timestamp.fromDate(new Date()), leaveFrom:leaveFrom, leaveTill:leaveTill, days:moment(leaveTill, "DD/MM/YYYY").diff(moment(leaveFrom, "DD/MM/YYYY"), "days")})
-    fetchLeave()
-    setLeaveFrom("")
-    setLeaveTill("")
-    setLoading(false)
-}
-
-const RenewID = async () => {
-    setLoading(true)
-    await updateDoc(doc(db, "records", id),{civil_expiry:TimeStamper(newExpiry), modified_on:Timestamp.fromDate(new Date())})
-    setCivilExpiry(newExpiry)
-    setLoading(false)
-    setRenewDocDialog(false)
-    fetchData()
-    setNewExpiry("")
-    setModifiedOn(new Date())
-}
-
-    // FUNCTION TO ADD A RECORD
-    // const addRecord = async () => {
-    //     setLoading(true)
-    //     await uploadFile()
-    //     await addDoc(collection(db, "records"), {name:name, email:email, employeeCode:employeeCode, companyName:companyName, dateofJoin:dateofJoin, salaryBasic:salaryBasic, allowance:allowance, created_on:Timestamp.fromDate(new Date()), modified_on:Timestamp.fromDate(new Date()), type:props.dbCategory, notify:true, profile:imageUrl, profile_name:fileName, civil_number:"", civil_expiry:"", civil_DOB:"", vehicle_make:"", vehicle_issue:"", vehicle_expiry:"", medical_completed_on:"", medical_due_on:"", passportID:"", passportIssue:"", passportExpiry:"", vt_hse_induction:"", vt_car_1:"", vt_car_2:"", vt_car_3:"", vt_car_4:"", vt_car_5:"", vt_car_6:"", vt_car_7:"", vt_car_8:"", vt_car_9:"", vt_car_10:""})
-    //     console.log("Added Record : ", imageUrl)
-    //     setAddDialog(false)
-    //     setName(editedName?editedName:name)
-    //     setEmail(editedEmail?editedEmail:email)
-    //     setLoading(false)
-    //     fetchData()
-    //     setModifiedOn(new Date())
-    // }
-
-    // FUNCTION TO EDIT RECORD
-    // const EditRecordName = async () => {
-    //     setLoading(true)
-    //     await updateDoc(doc(db, "records", id), {name:editedName?editedName:name, email:editedEmail?editedEmail:email, employeeCode:editedEmployeeCode?editedEmployeeCode:employeeCode, companyName:editedCompanyName?editedCompanyName:companyName, dateofJoin:editedDateofJoin?editedDateofJoin:dateofJoin, salaryBasic:editedSalarybasic?editedSalarybasic:salaryBasic, allowance:editedAllowance?editedAllowance:allowance, modified_on:Timestamp.fromDate(new Date)})
-    //     setUserEditPrompt(false)
-    //     setName(editedName?editedName:name)
-    //     setEmail(editedEmail?editedEmail:email)
-    //     setEmployeeCode(editedEmployeeCode?editedEmployeeCode:employeeCode)
-    //     setCompanyName(editedCompanyName?editedCompanyName:companyName)
-    //     setDateofJoin(editedDateofJoin?editedDateofJoin:dateofJoin)
-    //     setSalaryBasic(editedSalarybasic?editedSalarybasic:salaryBasic)
-    //     setAllowance(editedAllowance?editedAllowance:allowance)
-    //     setLoading(false)
-    //     fetchData()
-    //     setModifiedOn(new Date())
-    // }
-
-    // FUNCTION TO DELETE RECORD
-    const deleteRecord = async () => {
-        setLoading(true)
-        await deleteDoc(doc(db, "records", id))
-        profileName==""?
-        null
-        :
-        await deleteObject(ref(storage, profileName))
-        setCivilNumber("")
-        setCivilNumber("")
-        setCivilExpiry("")
-        setCivilDOB("")
-        setName("")
-        // setNewCivilExpiry("")
-        // setNewCivilNumber("")
-        setUserDeletePrompt(false)
-        setRecordSummary(false)
-        setLoading(false)
-        fetchData()
-        
-
-    }
-
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */} 
-
-
-    // FUNCTION TO ADD A CIVIL ID
-    const addCivilID = async () => {
-        setAddcivil(false)
-        setLoading(true)
+    const addItem = async () => {
         try {
-            await updateDoc(doc(db, "records", id),{civil_number:edited_civil_number, 
-                civil_expiry:edited_civil_expiry?TimeStamper(edited_civil_expiry):"", civil_DOB:edited_civil_DOB, modified_on:Timestamp.fromDate(new Date)})
-            setCivilNumber(edited_civil_number)
-            setCivilExpiry(edited_civil_expiry)
-            setCivilDOB(edited_civil_DOB)
+            setLoading(true)
+            await addDoc(collection(db, props.db), 
+            {
+                created_on:Timestamp.fromDate(new Date()), 
+                vehicleNumber:editedVehicleNumber, 
+                vehicleName:editedVehicleName, 
+                vehicleOwner:editedVehicleOwner, 
+                chasisNumber:editedChasisNumber, 
+                modelNumber:editedModelNumber
+            })
+
             setLoading(false)
+            setVehicleNumber(editedVehicleNumber)
+            setVehicleName(editedVehicleName)
+            setVehicleOwner(editedVehicleOwner)
+            setChasisNumber(editedChasisNumber)
+            setModelNumber(editedModelNumber)
             fetchData()
-            setModifiedOn(new Date())
-            
-        } catch (error) {
-            console.log(error)
-            setCivilNumber("")
-            setCivilExpiry("")
-            setCivilDOB("")
-            // setNewCivilExpiry("")
-            // setNewCivilNumber("")
-            setLoading(false)
-            message.info("ID generation failed "+String(error))
-        }
-        
-    }
-
-    // FUNCTION TO DELETE A CIVIL ID
-    const deleteCivilID = async () => {
-        setLoading(true)
-        await updateDoc(doc(db, "records", id),{civil_number:"", civil_expiry:"", civil_DOB:"", modified_on:Timestamp.fromDate(new Date)})
-        setCivilDelete(false)
-        setLoading(false)
-        setCivilNumber("")
-        setCivilNumber("")
-        setCivilExpiry("")
-        setCivilDOB("")
-        // setNewCivilExpiry("")
-        // setNewCivilNumber("")
-        fetchData()
-        setModifiedOn(new Date())
-    }
-
-    // FUNCTION TO EDIT A CIVIL ID
-    const EditCivilID = async () => {
-        setLoading(true)
-        try {
-            await updateDoc(doc(db, "records", id),{civil_number:edited_civil_number?edited_civil_number:civil_number, civil_expiry:edited_civil_expiry?TimeStamper(edited_civil_expiry):TimeStamper(civil_expiry), civil_DOB:edited_civil_DOB?edited_civil_DOB:civil_DOB, modified_on:Timestamp.fromDate(new Date)})
-            
-            setCivilNumber(edited_civil_number?edited_civil_number:civil_number)
-            setCivilExpiry(edited_civil_expiry?edited_civil_expiry:civil_expiry)
-            setCivilDOB(edited_civil_DOB?edited_civil_DOB:civil_DOB)
-
-            setEditcivilprompt(false)
-            setLoading(false)
-            fetchData()
-            setModifiedOn(new Date())
-
-        } catch (error) {
-            console.log(error)  
-            setLoading(false)   
-            message.info(String(error))
-        }
-    }
-
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}    
-
-
-    // FUNCTION TO ADD A VEHICLE ID
-    const addVehicleID = async () => {
-        setAddVehicleID(false)
-        setLoading(true)
-        try {
-            await updateDoc(doc(db, "records", id),{vehicle_number:vehicle_number, 
-            vehicle_expiry:TimeStamper(vehicle_expiry), vehicle_issue:vehicle_issue, vehicle_year:vehicle_year, modified_on:Timestamp.fromDate(new Date)})
-
-            setLoading(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-            
-        }
-         catch (error) {
-            console.log(error)
-            setCivilNumber("")
-            setCivilExpiry("")
-            setCivilDOB("")
-            // setNewCivilExpiry("")
-            // setNewCivilNumber("")
-            setVehicleYear("")
-            setLoading(false)
-            message.info("ID generation failed "+String(error))
-        }
-        
-    }
-
-    // FUNCTION TO DELETE A VEHICLE ID
-    const deleteVehicleID = async () => {
-        setLoading(true)
-        await updateDoc(doc(db, "records", id),{vehicle_number:"", vehicle_expiry:"", vehicle_issue:"", modified_on:Timestamp.fromDate(new Date)})
-        setVehicleIdDelete(false)
-        setLoading(false)
-        setVehicleNumber("")
-        setVehicleExpiry("")
-        setVehicleIssue("")
-        fetchData()
-        setModifiedOn(new Date())
-    } 
-
-    // FUNCTION TO DELETE A MEDICAL ID
-    const deleteMedicalID = async () => {
-        setLoading(true)
-        await updateDoc(doc(db, "records", id),{medical_completed_on:"", medical_due_on:"", modified_on:Timestamp.fromDate(new Date)})
-        setDeleteMedicalIDdialog(false)
-        setLoading(false)
-        setCompletedOn("")
-        setDueOn("")
-        fetchData()
-        setModifiedOn(new Date())
-    } 
-
-    //FUNCTION TO EDIT VEHICLE ID
-    const EditVehicleID = async () => {
-        setLoading(true)
-        try {
-            
-            await updateDoc(doc(db, "records", id),{vehicle_number:edited_vehicle_number?edited_vehicle_number:vehicle_number, vehicle_expiry:edited_vehicle_expiry?TimeStamper(edited_vehicle_expiry):TimeStamper(vehicle_expiry), vehicle_issue:edited_vehicle_issue?edited_vehicle_issue:vehicle_issue, modified_on:Timestamp.fromDate(new Date)})
-
-            setVehicleNumber(edited_vehicle_number?edited_vehicle_number:vehicle_number)
-            setVehicleExpiry(edited_vehicle_expiry?edited_vehicle_expiry:vehicle_expiry)
-            setVehicleIssue(edited_vehicle_issue?edited_vehicle_issue:vehicle_issue)
-            
-
-            setEditVehicleIDprompt(false)
-            setLoading(false)
-            fetchData()
-            setModifiedOn(new Date())
-
-        } catch (error) {
-            console.log(error)  
-            setLoading(false)   
-            message.info(String(error))
-        }
-    }
-
-    const renewVehicleID = async () => {
-        setLoading(true)
-        try {
-
-            await updateDoc(doc(db, "records", id),{vehicle_issue:edited_vehicle_issue, vehicle_expiry:edited_vehicle_expiry?TimeStamper(edited_vehicle_expiry):TimeStamper(vehicle_expiry), modified_on:Timestamp.fromDate(new Date)})
-            setVehicleIssue(edited_vehicle_issue?edited_vehicle_issue:vehicle_issue)
-            setVehicleExpiry(edited_vehicle_expiry?edited_vehicle_expiry:vehicle_expiry)
-            setLoading(false)
-            setRenewVehicleDialog(false)
-            fetchData()
-            setModifiedOn(new Date())
+            setAddDialog(false)
             
         } catch (error) {
             message.error(String(error))
-            setLoading(false)
+            setLoading(false)     
         }
     }
 
-    const addMedicalID = async () => {
-        setMedicalIDdialog(false)
+    const deleteItem = async () => {
         setLoading(true)
-        try {
-            await updateDoc(doc(db, "records", id),{medical_completed_on:medical_completed_on, 
-            medical_due_on:TimeStamper(medical_due_on), modified_on:Timestamp.fromDate(new Date)})
-
-            setLoading(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-            
-        }
-         catch (error) {
-            console.log(error)
-            setCompletedOn("")
-            setDueOn("")
-            setLoading(false)
-            message.info("ID generation failed "+String(error))
-        }
-    }
-
-    const EditMedicalID = async () => {
-        setLoading(true)
-        try {
-            await updateDoc(doc(db, 'records', id),{medical_completed_on:editedCompletedOn?editedCompletedOn:medical_completed_on, medical_due_on:editedDueOn?TimeStamper(editedDueOn):TimeStamper(medical_due_on), modified_on:Timestamp.fromDate(new Date)})
-
-            setDueOn(editedDueOn?editedDueOn:medical_due_on)
-            setCompletedOn(editedCompletedOn?editedCompletedOn:medical_completed_on)
-            setLoading(false)
-            setEditMedicalIDdialog(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-        } catch (error) {
-            message.error(String(error))
-        }
-    }
-
-    const EditPassport = async () => {
-        setLoading(true)
-        try {
-            await updateDoc(doc(db, 'records', id),{passportID:editedPassportID?editedPassportID:passportID, passportIssue:editedPassportIssue?editedPassportIssue:passportIssue, passportExpiry:editedPassportExpiry?TimeStamper(editedPassportExpiry):TimeStamper(passportExpiry), modified_on:Timestamp.fromDate(new Date)})
-            setPassportID(editedPassportID?editedPassportID:passportID)
-            setPassportIssue(editedPassportIssue?editedPassportIssue:passportIssue)
-            setPassportExpiry(editedPassportExpiry?editedPassportExpiry:passportExpiry)
-            setLoading(false)
-            setEditPassportDialog(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-        } catch (error) {
-            message.error(String(error))
-            setLoading(false)
-            
-        }
-    }
-
-    const renewMedicalID = async () => {
-        setLoading(true)
-        try {
-
-            await updateDoc(doc(db, "records", id),{medical_completed_on:editedCompletedOn?editedCompletedOn:medical_completed_on, medical_due_on:editedDueOn?TimeStamper(editedDueOn):TimeStamper(medical_due_on), modified_on:Timestamp.fromDate(new Date)})
-
-            setCompletedOn(editedCompletedOn?editedCompletedOn:medical_completed_on)
-            setDueOn(editedDueOn?editedDueOn:medical_due_on)
-            
-            setLoading(false)
-            setRenewMedicalIDdialog(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-        } catch (error) {
-            message.error(String(error))
-            setLoading(false)
-        }
-    }
-
-    const addPassport = async () => {
-        setAddPassportDialog(false)
-        setLoading(true)
-        try {
-            await updateDoc(doc(db, "records", id),{passportID:passportID, 
-            passportIssue:passportIssue, passportExpiry:TimeStamper(passportExpiry), modified_on:Timestamp.fromDate(new Date)})
-            setLoading(false)
-            fetchData()
-            setModifiedOn(new Date())
-            
-            
-        } catch (error) {
-            message.error(String(error))
-            setLoading(false)
-        }
-    }
-
-    const deletePassport = async () => {
-        setLoading(true)
-        await updateDoc(doc(db, "records", id),{passportID:"", passportExpiry:"", passportIssue:"", modified_on:Timestamp.fromDate(new Date)})
-        setDeletePassportDialog(false)
+        await deleteDoc(doc(db, props.db, id))
         setLoading(false)
-        setPassportID("")
-        setPassportExpiry("")
-        setPassportIssue("")
-        fetchData()
-        setModifiedOn(new Date())
+        setDeleteDialog(false)
+        setItemDialog(false)
     }
-    
-    const renewPassport = async () => {
-        setLoading(true)
-        await updateDoc(doc(db, "records", id),{passportExpiry:TimeStamper(editedPassportExpiry?editedPassportExpiry:passportExpiry), passportIssue:editedPassportIssue?editedPassportIssue:passportIssue, modified_on:Timestamp.fromDate(new Date)
-            
-        })
-        setPassportIssue(editedPassportIssue?editedPassportIssue:passportIssue)
-        setPassportExpiry(editedPassportExpiry?editedPassportExpiry:passportExpiry)
-        setLoading(false)
-        setRenewPassportDialog(false)
-        fetchData()
-        setModifiedOn(new Date())
-    
-    }
+
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
 
     // FUNCTION TO SEND A TEST EMAIL
@@ -752,12 +247,8 @@ const RenewID = async () => {
 
 
     const handleSelect = (id:any) => {
-        
-        
-        const index = checked.indexOf(id)
-        // console.log(index, id)
-    
 
+        const index = checked.indexOf(id)
 
         if(index == -1){
             setChecked((data:any)=>[...data,id])
@@ -766,131 +257,9 @@ const RenewID = async () => {
             const newVal = [...checked]
             newVal.splice(index, 1)
             setChecked(newVal)
-
-            // const newVal = [...checked]
-            // checked.filter((i:any) => i != id);
-            // setChecked(newVal)
-        }
-        
+        }   
     }
 
-    const handleBulkDelete = async () => {
-        try {
-            let counts = 0
-            let percentage = 100/checked.length
-            setLoading(true)
-            
-            await checked.forEach(async (item:any) => {
-                await deleteDoc(doc(db, "records", item))
-                counts++
-                setProgress(String(percentage*counts)+"%")
-                setProgressItem(item)
-            
-
-                if(checked.length==counts){
-                    setLoading(false)
-                    
-                    setBulkDeleteDialog(false)
-                    setAddButtonModeSwap(false)
-                    setSelectable(false)
-                    fetchData()
-                    setProgress("")
-                }
-            });
-
-            
-            
-
-        } catch (error) {
-            message.info(String(error))
-        }
-    }
-
-    const handleNotify = async () => {
-        setNotifyLoading(true)
-        await updateDoc(doc(db, 'records', id),{notify:!notify})
-        setNotify(!notify)
-        setNotifyLoading(false)
-        notify==true?
-        message.info("Notifications Disabled")
-        :
-        message.success("Notifications Enabled")
-    }
-
-    const addTraining = async (type:any) => {
-        setLoading(true)
-
-        if (type=="hse_induction"){        
-            await updateDoc(doc(db, 'records', id), {vt_hse_induction:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date())})
-            setHseInduction(EditedTrainingAddDialogInput)
-        }
-
-        if(type=="car_1"){
-            await updateDoc(doc(db, 'records', id), {vt_car_1:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date())})
-            setVtCar1(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_2"){
-            await updateDoc(doc(db, 'records', id), {vt_car_2:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date())})
-            setVtCar2(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_3"){
-            await updateDoc(doc(db, 'records', id), {vt_car_3:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date())})
-            setVtCar3(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_4"){
-            await updateDoc(doc(db, 'records', id), {vt_car_4:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar4(EditedTrainingAddDialogInput)
-        }
-        
-        if(type=="car_5"){
-            await updateDoc(doc(db, 'records', id), {vt_car_5:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar5(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_6"){
-            await updateDoc(doc(db, 'records', id), {vt_car_6:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar6(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_7"){
-            await updateDoc(doc(db, 'records', id), {vt_car_7:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar7(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_8"){
-            await updateDoc(doc(db, 'records', id), {vt_car_8:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar8(EditedTrainingAddDialogInput)
-        }
-        
-
-        if(type=="car_9"){
-            await updateDoc(doc(db, 'records', id), {vt_car_9:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar9(EditedTrainingAddDialogInput)
-        }
-        
-        if(type=="car_10"){
-            await updateDoc(doc(db, 'records', id), {vt_car_10:TimeStamper(EditedTrainingAddDialogInput), modified_on:Timestamp.fromDate(new Date()) })
-            setVtCar10(EditedTrainingAddDialogInput)
-        }
-        
-
-        
-        setLoading(false)
-        setModifiedOn(new Date())
-        setTrainingAddDialog(false)
-        fetchData()
-    }
-
-    
 
     return(
         <>
@@ -959,9 +328,9 @@ const RenewID = async () => {
                             </button>
 
 
-                            <button onClick={()=>usenavigate("/inbox")} style={{ width:"3rem", background:"rgba(220 20 60/ 20%)"}}>
-                        <InboxIcon className="" color="crimson"/>
-                    </button>
+                            {/* <button onClick={()=>usenavigate("/inbox")} style={{ width:"3rem", background:"rgba(220 20 60/ 20%)"}}>
+                                <InboxIcon className="" color="crimson"/>
+                            </button> */}
 
                             
             
@@ -1047,7 +416,7 @@ const RenewID = async () => {
                             
                         </div>
                 
-                        <p style={{opacity:0.5, fontSize:"0.7rem"}}>Add a record using + Add Record</p>
+                        <p style={{opacity:0.5, fontSize:"0.7rem"}}>Add a record using + Add Button</p>
                         
 
 
@@ -1094,106 +463,32 @@ const RenewID = async () => {
                         <motion.div key={post.id} initial={{opacity:0}} whileInView={{opacity:1}}>
 
                             <Directive 
-                                notify={(!post.notify)}
-                                tag={
-
-                                    post.civil_expiry != "" || post.vehicle_expiry != "" || post.medical_due_on != "" || post.passportID != ""||post.vt_hse_induction != "" || post.vt_car_1 != "" || post.vt_car_2 != "" || post.vt_car_3 != "" || post.vt_car_4 != ""|| post.vt_car_5 != ""|| post.vt_car_6 != ""|| post.vt_car_7 != ""|| post.vt_car_8 != ""|| post.vt_car_9 != ""|| post.vt_car_10 != ""
-                                    ?
-                                    
-
-                                    
-                                    "Available"
-                                    :"No Data"
-
-                                    
-
-
-
-                                    // ||
-                                    // post.civil_expiry?
-                                    // Math.round(moment(new Date(post.civil_expiry)).diff(moment(today), 'months')+1)<=3?
-                                    // "Expiring"
-                                    // :"No Data"
-                                    // :null
-
-                                    // ||
-                                    // post.vehicle_expiry?
-                                    // Math.round(moment(new Date(post.vehicle_expiry)).diff(moment(today), 'months')+1)<=3?
-                                    // "Expiring"
-                                    // :"No Data"
-                                    // :null
-
-                                }
+                                
+                                tag={post.vehicleNumber}
                                 
                                 selected={selected}
 
                                 selectable={selectable}
 
                                 status
+
+                                id_subtitle={post.modelNumber}
                             
                                 // ON CLICK
                                 onSelect={()=>{
                                     handleSelect(post.id)
-                            
                                 }}
                                 onClick={()=>{
-                                    
-                                    
-                                    setRecordSummary(true);
-                                    setName(post.name);
+                                    setItemDialog(true)
                                     setID(post.id);
-                                    setCivilNumber(post.civil_number);
-                                    setCivilExpiry(post.civil_expiry?moment((post.civil_expiry).toDate()).format("DD/MM/YYYY"):null);
-                                    setCivilDOB(post.civil_DOB)
-                                    setCompletedOn(post.medical_completed_on)
-                                    setDueOn(post.medical_due_on?moment((post.medical_due_on).toDate()).format("DD/MM/YYYY"):null)
-                                    setVehicleNumber(post.vehicle_number)
-                                    setVehicleExpiry(post.vehicle_expiry?moment((post.vehicle_expiry).toDate()).format("DD/MM/YYYY"):"")
-                                    setVehicleIssue(post.vehicle_issue)
-                                    setModifiedOn(post.modified_on?moment((post.modified_on).toDate()):"")
-                                    setPassportID(post.passportID)
-                                    setPassportIssue(post.passportIssue)
-                                    setPassportExpiry(post.passportExpiry?moment((post.passportExpiry).toDate()).format("DD/MM/YYYY"):null)
-                                    // setEmail(post.email)
-                                    setNotify(post.notify)
-
-                                    setHseInduction(post.vt_hse_induction?moment(post.vt_hse_induction.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar1(post.vt_car_1?moment(post.vt_car_1.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar2(post.vt_car_2?moment(post.vt_car_2.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar3(post.vt_car_3?moment(post.vt_car_3.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar4(post.vt_car_4?moment(post.vt_car_4.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar5(post.vt_car_5?moment(post.vt_car_5.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar6(post.vt_car_6?moment(post.vt_car_6.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar7(post.vt_car_7?moment(post.vt_car_7.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar8(post.vt_car_8?moment(post.vt_car_8.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar9(post.vt_car_9?moment(post.vt_car_9.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setVtCar10(post.vt_car_10?moment(post.vt_car_10.toDate()).format("DD/MM/YYYY"):null)
-
-                                    setImage(post.profile)
-                                    setProfileName(post.profile_name)
-                                    setCivilNumber(post.civil_number)
-                                    setVehicleNumber(post.vehicle_number)
-                                    setPassportID(post.passportID)
-                                    setEmployeeCode(post.employeeCode)
-                                    setCompanyName(post.companyName)
-                                    setDateofJoin(post.dateofJoin)
-                                    setSalaryBasic(post.salaryBasic)
-                                    setAllowance(post.allowance)
-                                    setProfileName(post.profile_name)
-                                    fetchLeave()
+                                    setVehicleNumber(post.vehicleNumber)
+                                    setVehicleName(post.vehicleName)
+                                    setVehicleOwner(post.vehicleOwner)
+                                    setChasisNumber(post.chasisNumber)
+                                    setModelNumber(post.modelNumber)
                                 }}                        
 
-                            key={post.id} title={post.name} icon={<UserCircle color="dodgerblue" />} />
+                            key={post.id} title={post.vehicleName} icon={<Car color="dodgerblue" />} />
                         </motion.div>
                     ))
                 }
@@ -1240,10 +535,12 @@ const RenewID = async () => {
 
             {/* ADD RECORD BUTTON */}
 
-            {/* <AddRecordButton title={addButtonModeSwap?"Delete Record(s)":"Add Record"} onClickSwap={addButtonModeSwap} onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
+            {/* <AddRecordButton title={addButtonModeSwap?"Delete Record(s)":"Add Record"} 
+            onClickSwap={addButtonModeSwap} 
+            onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
                 icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:<Plus color="dodgerblue" width="1rem"/>}/> */}
 
-            <AddItemButton title={props.addItemTitle} icon={props.addItemIcon} onClick={()=>setAddDialog(true)}/>
+            <AddItemButton title={props.addItemTitle} icon={props.addItemIcon} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)}/>
 
 
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
@@ -1274,718 +571,86 @@ const RenewID = async () => {
                 }/>
 
 
-            
+            {/* ADD ITEM DIALOG */}
+            <AddItemDialog open={addDialog} title='Add Vehicle' titleIcon={<Car/>} onCancel={()=>setAddDialog(false)} 
+            updating={loading}
+            disabled={loading}
+            VehicleNumberOnChange={(e:any)=>setEditedVehicleNumber(e.target.value)}
+            VehicleNameOnChange={(e:any)=>setEditedVehicleName(e.target.value)}
+            VehicleOwnerOnChange={(e:any)=>setEditedVehicleOwner(e.target.value)}
+            ChasisNumberOnChange={(e:any)=>setEditedChasisNumber(e.target.value)}
+            ModelNumberOnChange={(e:any)=>setEditedModelNumber(e.target.value)}
+            onOK={addItem}
+            />
 
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
+            {/* ITEM DISPLAY DIALOG */}
+            <DefaultDialog close open={itemDialog} title={vehicleName} titleIcon={<Car color='dodgerblue'/>} onCancel={()=>setItemDialog(false)}
+            code={vehicleNumber}
+            title_extra={
+                <div style={{display:"flex", gap:"0.5rem", alignItems:"center"}}>
+                    <DropDown onDelete={()=>setDeleteDialog(true)} onEdit={()=>setEditDialog(true)} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
+                </div>
+            }
+            extra={
+                <div style={{display:"flex", flexFlow:"column", paddingTop:"0.5rem", gap:"0.5rem"}}>
+                    <Directive icon={<User width={"1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
+                    <Directive icon={<CalendarDaysIcon width={"1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
+                    <Directive icon={<Car width={"1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
+                    
+                </div>
+            }
+                
+            />
 
-            {/* DISPLAY RECORD DIALOG */}
-            <DefaultDialog 
-            code={employeeCode}
-            codeTooltip="Employee Code"
+            {/* ADD ITEM DIALOG */}
+            <DefaultDialog open={logDialog} onCancel={()=>setLogDialog(false)} title={"Add Log"} titleIcon={<FilePlus/>}
+            OkButtonText='Add'
             tags
-            tag1Text={companyName}
-            tag2Text={dateofJoin}
-            tag3Text={salaryBasic}
-            tag4Text={allowance}
-            tag3OnClick={()=>setSalaryDialog(true)}
-            tag4OnClick={()=>setAllowanceDialog(true)}
-            onBottomTagClick={()=>{setLeaveLog(true);fetchLeave()}}
-            bottomTagValue={fetchingLeave?<LoadingOutlined/>:days}
-            titleIcon={
-                <Tooltip title={profileName}>
-                <Avatar style={{width:"3.5rem", height:"3.5rem"}}>
-                    <AvatarImage src={image}/>
-                    <AvatarFallback>
-                        <p style={{paddingTop:"0.2rem"}}>{Array.from(name)[0]}</p>
-                        
-                    </AvatarFallback>
-                </Avatar>
-                </Tooltip>
-            } title={name} open={recordSummary} onCancel={()=>{setRecordSummary(false);}} 
-            bigDate={()=>message.info("Last Modified : "+String(moment(new Date(modified_on)).format("LLL")))}
-            created_on={
-    
-                <ReactTimeAgo date={moment(modified_on, "DD/MM/YYYY").toDate()} timeStyle={ "twitter"} locale="en-us"/>
-                    
-            } 
-            title_extra={
-                <div style={{display:"flex", gap:"0.5rem"}}>
-                    <button onClick={handleNotify} style={{paddingLeft:"1rem", paddingRight:"1rem"}}>
-                        {
-                            notifyLoading?
-                            <LoadingOutlined color="dodgerblue"/>
-                            :
-                            notify?
-                            <BellRing color="dodgerblue" width={"1rem"} fill="dodgerblue"/>
-                            :<BellOff width={"1rem"} color="dodgerblue"/>
-                        }
-                        
-                    </button>
-                    <DropDown onDelete={()=>setUserDeletePrompt(true)} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
+            tag1Text={
+
+                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                    <Fuel width={"1rem"}/>
+                    Fuel
                 </div>
-            
             }
-            close extra={
-                <div style={{border:"", width:"100%", display:"flex", flexFlow:"column", gap:"0.5rem", paddingBottom:"", paddingTop:""}}>
-                    
-                    <Directive onClick={()=>setCivil(true)} icon={<CreditCard color="dodgerblue"/>} title="Civil ID" tag={civil_expiry} 
-                    status={
-                        moment(civil_expiry, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false:true
-                    }/>
 
-                    <Directive tag={vehicle_expiry} onClick={()=>setVehicle(true)} icon={<Car color="violet"/>} title="License" 
-                    status={
-                        moment(vehicle_expiry, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }/>
-
-                    <Directive tag={passportExpiry} onClick={()=>setPassportDialog(true)} icon={<Book color="goldenrod"/>} title="Passport" status={
-                        moment(passportExpiry, "DD/MM/YYYY").diff(moment(today),'months')<=6?
-                        false:true
-                    }/>
-
-                    <Directive tag={medical_due_on} onClick={()=>setHealthDialog(true)} icon={<HeartPulse color="tomato"/>} title="Medical" status={
-                        moment(medical_due_on, "DD/MM/YYYY").diff(moment(today),'months')<=3?
-                        false:true
-                    }/>
-
-                    
-                    {
-                        props.noTraining?
-                        null
-                        :
-                        <Directive
-                    tag={
-                        moment(vt_hse_induction, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_1, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_2, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_3, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_4, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_5, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_6, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_7, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_8, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_9, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ||
-                        moment(vt_car_10, "DD/MM/YYYY").diff(moment(today),'months')<=3
-                        ?
-                        "Expiring Soon"
-                        :
-                        ""                                           
-                    } 
-                    onClick={()=>{
-                        setValeTrainingDialog(true)
-                    }} icon={<GraduationCap color="lightgreen"/>} title="Training"/>
-                    }
-                    
-                    
+            tag2Text={
+                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                    <Wrench width={"1rem"}/>
+                    Service
                 </div>
-            
-            }/>
-
-            {/* ADD RECORD DIALOG */}
-
-            <AddItemDialog open={addDialog} title='Add Vehicle' onCancel={()=>setAddDialog(false)}/>
-
-            {/* <AddRecordDialog open={addDialog} onCancel={()=>{setAddDialog(false);setEditedName("")}}
-            updating={loading}
-            disabled={loading||!editedName?true:false}
-            title="Add Record"
-            onImageChange={(e:any)=>{setImageUpload(e.target.files[0]); setFileName(e.target.files[0].name)}}
-            NameOnChange={(e:any)=>{setName(e.target.value)}}
-            EmailOnChange={(e:any)=>setEmail(e.target.value)}
-            CodeOnChange={(e:any)=>setEmployeeCode(e.target.value)}
-            CompanyNameOnChange={(e:any)=>setCompanyName(e.target.value)}
-            DateofJoinOnChange={(e:any)=>setDateofJoin(e.target.value)}
-            SalaryBasicOnChange={(e:any)=>setSalaryBasic(e.target.value)}
-            AllowanceOnChange={(e:any)=>setAllowance(e.target.value)}
-            onOK={addRecord}
-            /> */}
-
-           
-
-
-            {/* EDIT RECORD DIALOG */}
-            {/* <AddRecordDialog open={userEditPrompt} onCancel={()=>{setUserEditPrompt(false);setEditedName("")}}
-            title="Edit Record"
-            updating={loading}
-            disabled={loading||!editedName?true:false}
-            onImageChange={(e:any)=>{setImageUpload(e.target.files[0]); setFileName(e.target.files[0].name)}}
-
-            NameOnChange={(e:any)=>{setEditedName(e.target.value)}}
-            EmailOnChange={(e:any)=>setEditedEmail(e.target.value)}
-            CodeOnChange={(e:any)=>setEditedEmployeeCode(e.target.value)}
-            CompanyNameOnChange={(e:any)=>setEditedCompanyName(e.target.value)}
-            DateofJoinOnChange={(e:any)=>setEditedDateofJoin(e.target.value)}
-            SalaryBasicOnChange={(e:any)=>setEditedSalaryBasic(e.target.value)}
-            AllowanceOnChange={(e:any)=>setEditedAllowance(e.target.value)}
-
-            NameLabel="Full Name : "
-            EmailLabel="Email : "
-            CodeLabel="Code : "
-            CompanyLabel="Company : "
-            DateofJoinLabel="Date of Join : "
-            SalaryBasicLabel="Salary Basic : "
-            AllowanceLabel="Allowance : "
-
-            NameValue={name}
-            EmailValue={email}
-            CodeValue={employeeCode}
-            CompanyValue={companyName}
-            DateofJoinValue={dateofJoin}
-            SalaryBasicValue={salaryBasic}
-            AllowanceValue={allowance}
-
-            onOK={EditRecordName}
-            /> */}
-            
-            {/* <InputDialog open={userEditPrompt} titleIcon={<PenLine/>} title="Edit Record Name" inputplaceholder="Enter New Name" OkButtonText="Update" OkButtonIcon={<TextCursor width={"1rem"}/>} onCancel={()=>setUserEditPrompt(false)} onOk={EditRecordName} inputOnChange={(e:any)=>setEditedName(e.target.value)} updating={loading} disabled={loading} input1Value={name} input2placeholder="Email Address" input2Value={email} input2OnChange={(e:any)=>setEditedEmail(e.target.value)} image={<input type="file" style={{fontSize:"0.8rem"}}/>} input1Label="Enter Name : " input2Label="Enter Email : "/> */}
-
-            {/* DELETE RECORD DIALOG */}
-            <DefaultDialog open={userDeletePrompt} titleIcon={<X/>} destructive title="Delete Record?" OkButtonText="Delete" onCancel={()=>setUserDeletePrompt(false)} onOk={deleteRecord} updating={loading} disabled={loading}/>
-
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
-
-            {/*DISPLAY CIVIL ID DIALOG */}
-            <DefaultDialog back close titleIcon={<CreditCard color="dodgerblue"/>} title="Civil ID" open={civil} onCancel={()=>setCivil(false)} OkButtonText="Add" 
-            
-            title_extra={civil_number?
-            
-            <div style={{display:"flex", gap:"0.5rem", height:"2.25rem"}}>
-            
-
-            {
-                moment(civil_expiry, "DD/MM/YYYY").diff(moment(today), 'months')+1<=3?
-                <button onClick={()=>{setRenewDocDialog(true)}} className="" style={{fontSize:"0.85rem", width:"6rem", display:"flex", gap:"0.5rem", background:"goldenrod", color:"black"}}>
-                    <Sparkles width={"0.85rem"} color="black"/>
-                    Renew
-                </button>
-                :null
             }
-            
 
-            <DropDown onDelete={()=>{setCivilDelete(true)}} onEdit={()=>{setEditcivilprompt(true)}} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} />
-            </div>
-            
-            :null
-            } extra={
-                <div style={{width:"100%", display:"flex", justifyContent:'center', paddingBottom:"1rem"}}>
-                    {
-                        !civil_number || loading?
-                        <div style={{height:"19ch", width:"32ch", display:"flex"}}>
-                            
-                            <button onClick={()=>setAddcivil(true)} style={{width:"100%",border:"2px solid rgba(100 100 100/ 50%)"}}>
-                            {
-                                !loading?
-                                <>
-                                <Plus width={"1rem"}/>
-                                    Add ID
-                                </>
-                                
-                                :
-                                <>
-                                <LoadingOutlined/>
-                                    Generating ID
-                                </>
-                            }
-                            
-                            </button>
-                        </div>
-                        :
-                        <div>
-                        {/* <CivilID 
-                        name={name} 
-                        expirydate={new_civil_expiry?new_civil_expiry:civil_expiry} 
-                        civilid={new_civil_number?new_civil_number:civil_number} 
-                        DOB={civil_DOB}/> */}
-
-                        {/* <br/>
-                        <button style={{width:"100%"}}>Edit</button> */}
-                        </div>  
-                    }
-
-                    <br/>
-                        
-                    
+            tag3Text={
+                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                    <Cog width={"1rem"}/>
+                    Parts
                 </div>
+            }
+
+            tag4Text={"Other"}
+
+            extra={
+                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                    <SelectMenu db='vehicles'/>
+                    <input placeholder='Description'/>
+                    <input placeholder='Amount'/>
+                </div>
+                
             }
             />
 
-            {/* ADD CIVIL ID DIALOG */}
-            <InputDialog open={addcivil} title="Add Civil ID" titleIcon={<CreditCard/>} inputplaceholder="Civil Number" input2placeholder="Expiry Date" input3placeholder="Date of Birth" OkButtonText="Add" onCancel={()=>setAddcivil(false)} onOk={addCivilID} inputOnChange={(e:any)=>setEditedCivilNumber(e.target.value)} input2OnChange={(e:any)=>setEditedCivilExpiry(e.target.value)} input3OnChange={(e:any)=>setEditedCivilDOB(e.target.value)} updating={loading} disabled={loading}/>
-
-
-            {/* EDIT CIVIL ID DIALOG */}
-            <InputDialog open={editcivilprompt} title="Edit Civil ID" titleIcon={<PenLine/>} OkButtonText="Update" onCancel={()=>{setEditcivilprompt(false);setEditedCivilNumber("");setEditedCivilExpiry(null);setEditedCivilDOB("")}} inputplaceholder="Enter New Civil ID" input2placeholder="Enter Expiry Date" input3placeholder="Enter Date of Birth" inputOnChange={(e:any)=>setEditedCivilNumber(e.target.value)} input2OnChange={(e:any)=>{setEditedCivilExpiry(e.target.value)}} input3OnChange={(e:any)=>setEditedCivilDOB(e.target.value)} onOk={EditCivilID} updating={loading} disabled={loading} input1Value={civil_number} input2Value={civil_expiry} input3Value={civil_DOB} input1Label="Civil Number : " input2Label="Expiry Date : " input3Label="Date of Birth : "/>
-
-            {/* DELETE CIVIL ID DIALOG */}
-            <DefaultDialog destructive updating={loading} open={civilDelete} title="Delete Civil ID?" OkButtonText="Delete" onCancel={()=>setCivilDelete(false)} onOk={deleteCivilID} disabled={loading}/>
-
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
-            {/*DISPLAY VEHICLE ID DIALOG */}
-            <DefaultDialog close titleIcon={<Car color="violet"/>} title="License" open={vehicle} onCancel={()=>setVehicle(false)} OkButtonText="Add" back
-
-            title_extra=
-            {vehicle_number?
-
-                <div style={{display:"flex", gap:"0.5rem", height:"2.25rem"}}>
-
-                {
-                    moment(vehicle_expiry, "DD/MM/YYYY").diff(moment(today), 'months')<=2?
-                    <button onClick={()=>{setRenewVehicleDialog(true)}} className="" style={{fontSize:"0.85rem", width:"6rem", display:"flex", gap:"0.5rem", background:"goldenrod", color:"black"}}>
-                        <Sparkles width={"0.85rem"} color="black" />
-                        Renew
-                    </button>
-                    :null
-                }
-
-                {/* <DropDown onDelete={()=>{setVehicleIdDelete(true)}} 
-                onEdit={()=>{setEditVehicleIDprompt(true)}} 
-                trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} */}
-
-                <DropDown onDelete={()=>{setVehicleIdDelete(true)}} onEdit={()=>{setEditVehicleIDprompt(true)}} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} />
-
-                </div>
-                :null
-            }    
-                
-                 
-            extra={
-                <div style={{width:"100%", display:"flex", justifyContent:'center', paddingBottom:"1rem"}}>
-                    {
-                        !vehicle_number || loading?
-                        <div style={{height:"19ch", width:"32ch", display:"flex"}}>
-                            
-                            <button onClick={()=>setAddVehicleID(true)} style={{width:"100%",border:"2px solid rgba(100 100 100/ 50%)"}}>
-                            {
-                                !loading?
-                                <>
-                                <Plus width={"1rem"}/>
-                                    Add ID
-                                </>
-                                
-                                :
-                                <>
-                                <LoadingOutlined/>
-                                    Generating ID
-                                </>
-                            }
-                            
-                            </button>
-                        </div>
-                        :
-                        <div>
-                        {/* <VehicleID name={name} expirydate={vehicle_expiry} issuedate={vehicle_issue} reg_no={vehicle_number?vehicle_number:vehicle_number} year={"XXXX"}/> */}
-                        {/* <br/>
-                        <button style={{width:"100%"}}>Edit</button> */}
-                        </div>  
-                    }
-                    <br/>         
-                </div>
-            }/>
-
-            {/* ADD VEHICLE ID DIALOG */}
-            <InputDialog open={add_vehicle_id} title="Add License" titleIcon={<Car/>} inputplaceholder="License Number" input2placeholder="Expiry Date" input3placeholder="Issue Date" OkButtonText="Add" 
-            onCancel={()=>{
-                setAddVehicleID(false)
-            }} onOk={addVehicleID} inputOnChange={(e:any)=>setVehicleNumber(e.target.value)} input2OnChange={(e:any)=>setVehicleExpiry(e.target.value)} input3OnChange={(e:any)=>setVehicleIssue(e.target.value)} updating={loading} disabled={loading}/>
-
-            {/* EDIT VEHICLE ID DIALOG */}
-            <InputDialog open={edit_vehicle_id_prompt} title="Edit Vehicle ID" titleIcon={<PenLine/>} OkButtonText="Update" onCancel={()=>{setEditVehicleIDprompt(false)}} inputplaceholder="Enter Vehicle Number" input2placeholder="Enter Expiry Date" input3placeholder="Enter Issue Date" inputOnChange={(e:any)=>setEditedVehicleNumber(e.target.value)} input2OnChange={(e:any)=>{setEditedVehicleExpiry(e.target.value)}} input3OnChange={(e:any)=>setEditedVehicleIssue(e.target.value)} onOk={EditVehicleID} updating={loading} disabled={loading} input1Value={vehicle_number} input2Value={vehicle_expiry} input3Value={vehicle_issue} input1Label="License No : " input2Label="Expiry Date" input3Label="Issue Date"/>
-
-            {/* DELETE VEHICLE ID DIALOG */}
-            <DefaultDialog updating={loading} open={vehicleIdDelete} title="Delete License?" OkButtonText="Delete" onCancel={()=>setVehicleIdDelete(false)} onOk={deleteVehicleID} disabled={loading} destructive/>
-
-            {/* BULK DELETE DIALOG */}
-            <DefaultDialog progressItem={progressItem} progress={progress} destructive updating={loading} title="Delete record(s)?" open={bulkDeleteDialog} OkButtonText="Confirm" onCancel={()=>setBulkDeleteDialog(false)} onOk={handleBulkDelete} disabled={loading}/>
-
-            {/* RENEW CIVIL ID */}
-            <InputDialog titleIcon={<Sparkles color="goldenrod" fill="goldenrod"/>} title={"Renew Document"} open={renewDocDialog} onCancel={()=>{setRenewDocDialog(false);setNewExpiry("")}} inputplaceholder="New Expiry" OkButtonText="Renew" inputOnChange={(e:any)=>setNewExpiry(e.target.value)} onOk={RenewID} updating={loading} disabled={loading||newExpiry?false:true} input1Value={civil_expiry} input1Label="New Expiry : " OkButtonIcon={<Sparkles width={"1rem"}/>}/>
-
-            {/* RENEW VEHICLE ID DIALOG */}
-            <InputDialog title="Renew Vehicle ID" open={renewVehicleDialog} onCancel={()=>setRenewVehicleDialog(false)} inputplaceholder="New Issue Date" input1Label="New Issue" input2placeholder="New Expiry" input2Label="New Expiry" input1Value={vehicle_issue} input2Value={vehicle_expiry} OkButtonText="Renew" OkButtonIcon={<Sparkles width={"1rem"}/>} disabled={loading} onOk={renewVehicleID} inputOnChange={(e:any)=>setEditedVehicleIssue(e.target.value)} input2OnChange={(e:any)=>setEditedVehicleExpiry(e.target.value)} updating={loading}/>
-
-            {/* TRAINING DIALOG */}
-            <DefaultDialog close back open={trainingDialog} onCancel={()=>setTrainingDialog(false)} title={"Training"} titleIcon={<GraduationCap color="lightgreen"/>} 
-            extra={
-                <div style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                    <Directive icon={<img src="/vale-logo.png" style={{width:"1.25rem", paddingBottom:"0.25rem"}}/>} title="Vale Training" onClick={()=>{setValeTrainingDialog(true)}}/>
-                    <Directive icon={<Globe width={"1rem"} color="grey"/>} title="Other"/>
-                </div>
-            }/>
-
-            {/* <DefaultDialog close back titleIcon={<HeartPulse color="tomato"/>} title={"Medical"} open={healthDialog} onCancel={()=>setHealthDialog(false)} extra={
-                <div>
-
-                </div>
-            }/> */}
-
-
-            {/* MEDICAL ID DIALOG */}
-            <DefaultDialog close titleIcon={<HeartPulse color="tomato"/>} title="Medical ID" open={healthDialog} onCancel={()=>setHealthDialog(false)} back
-
-            title_extra=
-            {medical_completed_on?
-
-                <div style={{display:"flex", gap:"0.5rem", height:"2.25rem"}}>
-
-                {
-                    moment(medical_due_on, "DD/MM/YYYY").diff(moment(today), 'months')<=2?
-                    <button onClick={()=>{setRenewMedicalIDdialog(true)}} className="" style={{fontSize:"0.85rem", width:"6rem", display:"flex", gap:"0.5rem", background:"goldenrod", color:"black"}}>
-                        <Sparkles width={"0.85rem"} color="black" />
-                        Renew
-                    </button>
-                    :null
-                }
-
-                {/* <DropDown onDelete={()=>{setVehicleIdDelete(true)}} 
-                onEdit={()=>{setEditVehicleIDprompt(true)}} 
-                trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} */}
-
-                <DropDown onDelete={()=>{setDeleteMedicalIDdialog(true)}} onEdit={()=>{setEditMedicalIDdialog(true)}} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} />
-
-                </div>
-                :null
-            }    
-                
-                
-            extra={
-                <div style={{width:"100%", display:"flex", justifyContent:'center', paddingBottom:"1rem"}}>
-                    {
-                        !medical_completed_on || loading?
-                        <div style={{height:"19ch", width:"32ch", display:"flex"}}>
-                            
-                            <button onClick={()=>setMedicalIDdialog(true)} style={{width:"100%",border:"2px solid rgba(100 100 100/ 50%)"}}>
-                            {
-                                !loading?
-                                <>
-                                <Plus width={"1rem"}/>
-                                    Add ID
-                                </>
-                                
-                                :
-                                <>
-                                <LoadingOutlined/>
-                                    Generating ID
-                                </>
-                            }
-                            
-                            </button>
-                        </div>
-                        :
-                        <div>
-                        {/* <MedicalID name={name} completedOn={medical_completed_on} dueOn={medical_due_on}/> */}
-                        {/* <br/>
-                        <button style={{width:"100%"}}>Edit</button> */}
-                        </div>  
-                    }
-                    <br/>         
-                </div>
-            }/>
-
-            {/* ADD MEDICAL ID DIALOG */}
-            <InputDialog open={MedicalIDdialog} OkButtonText="Add" onCancel={()=>setMedicalIDdialog(false)} title="Add Medical ID" titleIcon={<HeartPulse color="tomato"/>} inputplaceholder="Completed On" input2placeholder="Due On" inputOnChange={(e:any)=>setCompletedOn(e.target.value)} input2OnChange={(e:any)=>setDueOn(e.target.value)} onOk={addMedicalID} updating={loading}/>
-
-             
-            {/* EDIT MEDICAl ID DIALOG */}
-            <InputDialog open={editMedicalIDdialog} title="Edit Medical ID" titleIcon={<PenLine/>} OkButtonText="Update" onCancel={()=>{setEditMedicalIDdialog(false)}} inputplaceholder="Completed On" input2placeholder="Due on" inputOnChange={(e:any)=>setEditedCompletedOn(e.target.value)} input2OnChange={(e:any)=>{setEditedDueOn(e.target.value)}} onOk={EditMedicalID} updating={loading} disabled={loading} input1Value={medical_completed_on} input2Value={medical_due_on} input3Value={vehicle_issue} input1Label="Completed : " input2Label="Due On : "/>
-
-            {/* DELETE MEDICAL ID */}
-            <DefaultDialog title={"Delete Medical ID?"} destructive OkButtonText="Delete" open={deleteMedicalIDdialog} onCancel={()=>setDeleteMedicalIDdialog(false)} updating={loading} disabled={loading} onOk={deleteMedicalID}/>
-
-            {/* RENEW MEDICAL ID DIALOG */}
-            <InputDialog titleIcon={<Sparkles color="goldenrod"/>} title="Renew Medical ID" open={renewMedicalIDdialog} onCancel={()=>setRenewMedicalIDdialog(false)} inputplaceholder="Completed On" input1Label="Completed : " input2placeholder="New Due" input2Label="New Due : " OkButtonIcon={<Sparkles width={"1rem"}/>} OkButtonText="Renew" input1Value={medical_completed_on} input2Value={medical_due_on} onOk={renewMedicalID} updating={loading} inputOnChange={(e:any)=>setEditedCompletedOn(e.target.value)} input2OnChange={(e:any)=>setEditedDueOn(e.target.value)} disabled={loading}/>
-            
-            {/* VALE TRAINING DIALOG */}
-            <DefaultDialog open={valeTrainingDialog} titleIcon={<img src="/vale-logo.png" style={{width:"1.75rem", paddingBottom:"0.5rem"}}/>} title={"Vale Training"} onCancel={()=>setValeTrainingDialog(false)} close back title_extra={
-                <>
-                {/* <button style={{fontSize:"0.8rem"}}><Plus color="dodgerblue"/></button> */}
-                </>
-            } extra={
-                <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.45rem", maxHeight:"17.5rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem"}}>
-
-                    <Directive tag={vt_hse_induction}  icon={<Disc color="dodgerblue"/>} title="HSE Induction" onClick={()=>{setTrainingAddDialogTitle("HSE Induction");setTrainingAddDialog(true); setTrainingType("hse_induction"); setTrainingAddDialogInputValue(vt_hse_induction)}} 
-                    status={
-                        moment(vt_hse_induction, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_1}  icon={<Disc color="dodgerblue"/>} title="CAR - 1" onClick={()=>{setTrainingAddDialogTitle("CAR - 1"); setTrainingAddDialog(true); setTrainingType("car_1"); setTrainingAddDialogInputValue(vt_car_1)}}
-                    status={
-                        moment(vt_car_1, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_2}  icon={<Disc color="dodgerblue" />} title="CAR - 2" onClick={()=>{setTrainingAddDialogTitle("CAR - 2"); setTrainingAddDialog(true); setTrainingType("car_2"); setTrainingAddDialogInputValue(vt_car_2)}}
-                    status={
-                        moment(vt_car_2, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_3}  icon={<Disc color="dodgerblue" />} title="CAR - 3" onClick={()=>{setTrainingAddDialogTitle("CAR - 3"); setTrainingAddDialog(true); setTrainingType("car_3"); setTrainingAddDialogInputValue(vt_car_3)}}
-                    status={
-                        moment(vt_car_3, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_4}  icon={<Disc color="dodgerblue" />} title="CAR - 4" onClick={()=>{setTrainingAddDialogTitle("CAR - 4"); setTrainingAddDialog(true); setTrainingType("car_4"); setTrainingAddDialogInputValue(vt_car_4)}}
-                    status={
-                        moment(vt_car_4, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_5}  icon={<Disc color="dodgerblue" />} title="CAR - 5" onClick={()=>{setTrainingAddDialogTitle("CAR - 5"); setTrainingAddDialog(true); setTrainingType("car_5"); setTrainingAddDialogInputValue(vt_car_5)}}
-                    status={
-                        moment(vt_car_5, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_6}  icon={<Disc color="dodgerblue" />} title="CAR - 6" onClick={()=>{setTrainingAddDialogTitle("CAR - 6"); setTrainingAddDialog(true); setTrainingType("car_6"); setTrainingAddDialogInputValue(vt_car_6)}}
-                    status={
-                        moment(vt_car_6, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_7}  icon={<Disc color="dodgerblue" />} title="CAR - 7" onClick={()=>{setTrainingAddDialogTitle("CAR - 7"); setTrainingAddDialog(true); setTrainingType("car_7"); setTrainingAddDialogInputValue(vt_car_7)}}
-                    status={
-                        moment(vt_car_7, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_8}  icon={<Disc color="dodgerblue" />} title="CAR - 8" onClick={()=>{setTrainingAddDialogTitle("CAR - 8"); setTrainingAddDialog(true); setTrainingType("car_8"); setTrainingAddDialogInputValue(vt_car_8)}}
-                    status={
-                        moment(vt_car_8, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_9}  icon={<Disc color="dodgerblue" />} title="CAR - 9" onClick={()=>{setTrainingAddDialogTitle("CAR - 9"); setTrainingAddDialog(true); setTrainingType("car_9"); setTrainingAddDialogInputValue(vt_car_9)}}
-                    status={
-                        moment(vt_car_9, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                    <Directive tag={vt_car_10}  icon={<Disc color="dodgerblue" />} title="CAR - 10" onClick={()=>{setTrainingAddDialogTitle("CAR - 10"); setTrainingAddDialog(true); setTrainingType("car_10"); setTrainingAddDialogInputValue(vt_car_10)}}
-                    status={
-                        moment(vt_car_10, "DD/MM/YYYY").diff(moment(today), 'months')<=3?
-                        false
-                        :true
-                    }
-                    />
-
-                </div> 
-            }/>
-
-            <DefaultDialog close titleIcon={<Book color="goldenrod"/>} title="Passport" open={passportDialog} onCancel={()=>setPassportDialog(false)} back
-
-            title_extra=
-            {passportExpiry?
-
-                <div style={{display:"flex", gap:"0.5rem", height:"2.25rem"}}>
-
-                {
-                    moment(passportExpiry, "DD/MM/YYYY").diff(moment(today), 'months')<=6 && !loading?
-                    <button onClick={()=>{setRenewPassportDialog(true)}} className="" style={{fontSize:"0.85rem", width:"6rem", display:"flex", gap:"0.5rem", background:"goldenrod", color:"black"}}>
-                        <Sparkles width={"0.85rem"} color="black" />
-                        Renew
-                    </button>
-                    :null
-                }
-
-                {/* <DropDown onDelete={()=>{setVehicleIdDelete(true)}} 
-                onEdit={()=>{setEditVehicleIDprompt(true)}} 
-                trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} */}
-
-                <DropDown onDelete={()=>{setDeletePassportDialog(true)}} onEdit={()=>{setEditPassportDialog(true)}} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>} />
-
-                </div>
-                :null
-            }    
-                
-                
-            extra={
-                <div style={{width:"100%", display:"flex", justifyContent:'center', paddingBottom:"1rem"}}>
-                    {
-                        !passportID || loading?
-                        <div style={{height:"19ch", width:"32ch", display:"flex"}}>
-                            
-                            <button onClick={()=>setAddPassportDialog(true)} style={{width:"100%",border:"2px solid rgba(100 100 100/ 50%)"}}>
-                            {
-                                !loading?
-                                <>
-                                <Plus width={"1rem"}/>
-                                    Add Passport
-                                </>
-                                
-                                :
-                                <>
-                                <LoadingOutlined/>
-                                    Generating Passport
-                                </>
-                            }
-                            
-                            </button>
-                        </div>
-                        :
-                        <div>
-                        {/* <Passport name={name} passport_id={passportID} issue={passportIssue} expiry={passportExpiry}/> */}
-                        {/* <br/>
-                        <button style={{width:"100%"}}>Edit</button> */}
-                        </div>  
-                    }
-                    <br/>         
-                </div>
-            }/>
-
-            {/* ADD PASSPORT ID DIALOG */}
-            <InputDialog open={addPassportDialog} OkButtonText="Add" onCancel={()=>setAddPassportDialog(false)} title="Add Passport" titleIcon={<Book color="goldenrod"/>} inputplaceholder="Passport ID" input2placeholder="Issue Date" input3placeholder="Expiry Date" inputOnChange={(e:any)=>setPassportID(e.target.value)} input2OnChange={(e:any)=>setPassportIssue(e.target.value)} input3OnChange={(e:any)=>setPassportExpiry(e.target.value)} onOk={addPassport} updating={loading}/>
-
-             
-            {/* EDIT PASSPORT DIALOG */}
-            <InputDialog open={editPassportDialog} title="Edit Passport" titleIcon={<PenLine/>} OkButtonText="Update" onCancel={()=>{setEditPassportDialog(false)}} inputplaceholder="Passport ID" input2placeholder="Issue Date" input3placeholder="Expiry Date" inputOnChange={(e:any)=>setEditedPassportID(e.target.value)} input2OnChange={(e:any)=>{setEditedPassportIssue(e.target.value)}} input3OnChange={(e:any)=>setEditedPassportExpiry(e.target.value)} onOk={EditPassport} updating={loading} disabled={loading} input1Value={passportID} input2Value={passportIssue} input3Value={passportExpiry} input1Label="Passport ID : " input2Label="Issue Date : " input3Label="Expiry Date" />
-
-            <DefaultDialog title={"Delete Passport?"} destructive OkButtonText="Delete" open={DeletePassportDialog} onCancel={()=>setDeletePassportDialog(false)} updating={loading} disabled={loading} onOk={deletePassport}/>
-
-            {/* RENEW PASSPORT DIALOG */}
-            <InputDialog titleIcon={<Sparkles color="goldenrod"/>} title="Renew Passport" open={renewPassportDialog} onCancel={()=>setRenewPassportDialog(false)} inputplaceholder="New Issue Date" input1Label="New Issue : " input2placeholder="New Expiry" input2Label="New Expiry : " OkButtonIcon={<Sparkles width={"1rem"}/>} OkButtonText="Renew" input1Value={passportIssue} input2Value={passportExpiry} onOk={renewPassport} updating={loading} inputOnChange={(e:any)=>setEditedPassportIssue(e.target.value)} input2OnChange={(e:any)=>setEditedPassportExpiry(e.target.value)} disabled={loading}/>
-
-            <InputDialog open={trainingAddDialog} onOk={()=>{addTraining(trainingType)}} onCancel={()=>{setTrainingAddDialog(false);setEditedTrainingAddDialogInput("")}} title={trainingAddDialogTitle} inputplaceholder="Expiry Date" OkButtonText="Update" inputOnChange={(e:any)=>setEditedTrainingAddDialogInput(e.target.value)} OkButtonIcon={<RefreshCcw width={"1rem"}/>} updating={loading} disabled={loading||!EditedTrainingAddDialogInput?true:false} input1Value={trainingAddDialogInputValue}/>
-
-            <DefaultDialog close title={"Basic Salary"} titleIcon={<CircleDollarSign/>} open={salaryDialog} onCancel={()=>setSalaryDialog(false)}
-            extra={
-                <>
-                <div style={{display:"flex", border:"", width:"100%", borderRadius:"0.5rem", padding:"0.5rem", background:"", flexFlow:"column"}}>
-
-
-                <p style={{fontSize:"0.8rem", opacity:0.5, justifyContent:"center", display:'flex'}}>Current Earnings</p>
-                    <div style={{display:"flex", border:"", gap:"0.5rem", justifyContent:"center", fontWeight:600}}>
-                    <p>OMR {salaryBasic}</p>
-                    </div>
-
-                    <div style={{border:"", height:"3rem", paddingTop:"", marginTop:"1.5rem", width:"100%"}}>
-                        <LineCharter lineColor="lightgreen"/>
-                    </div>
-                </div>
-                
-                </>
-                
-            } 
-            />
             
 
-            {/* LEAVE LOG DIALOG */}
-            <DefaultDialog code={name} codeTooltip="Employee Name" codeIcon={<User color="dodgerblue" width={"0.8rem"}/>} close open={leaveLog} onCancel={()=>setLeaveLog(false)} title={"Leave Log"}
-            title_extra={
-                <button onClick={fetchLeave} style={{width:"3rem", height:"2.5rem"}}>
-                {
-                    fetchingLeave?
-                    <LoadingOutlined style={{color:"dodgerblue"}}/>
-                    :
-                    <RefreshCcw color="dodgerblue" width={"1rem"}/>
-                }
-                
-            </button>
-            }
-            extra={
-                <>
-                <div style={{display:"flex", border:"", width:"100%", borderRadius:"0.5rem", padding:"0.5rem", background:"", flexFlow:"column"}}>
-                    
-                    <p style={{fontSize:"0.8rem", opacity:0.5, justifyContent:"center", display:'flex'}}>Block Period</p>
-                    <div style={{display:"flex", border:"", gap:"0.5rem", justifyContent:"center", fontWeight:600}}>
-                    <p>11/12/2024</p>-<p>13/12/2026</p>
-                    </div>
+            {/* DELETE DIALOG */}
+            <DefaultDialog title={"Delete Item?"} open={deleteDialog} onCancel={()=>setDeleteDialog(false)} destructive OkButtonText='Delete' onOk={deleteItem} updating={loading}/>
 
-                    <div style={{border:"", height:"3rem", paddingTop:"", marginTop:"1.5rem"}}>
-                    <LineCharter/>
-                    </div>
-                    
-                
-                    
-                </div>
-
-                {leaveList.length==0?
-                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"2.5rem",borderRadius:"0.5rem", marginBottom:"1rem"}}></div>
-                    :
-                    <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:"1rem"}}>
-                        {
-                        leaveList.map((e:any)=>(
-                            <motion.div key={e.id} initial={{opacity:0}} whileInView={{opacity:1}}>
-                            <Directive status={true} tag={e.days+" Days"} title={e.leaveFrom+" - "+e.leaveTill} titleSize="0.75rem" key={e.id} icon={<MinusSquareIcon onClick={()=>{}}  className="animate-pulse" color="dodgerblue" width={"1.1rem"}/>} noArrow/>
-                            </motion.div>
-                        ))
-                    }
-                    </div>}
-
-                <div style={{display:"flex", gap:"0.5rem", width:"100%", zIndex:""}}>
-                    <input id="input-1" defaultValue={leaveFrom} onChange={(e:any)=>setLeaveFrom(e.target.value)} placeholder="From" style={{flex:1.5}}/>
-                    <input id="input-2" defaultValue={leaveTill} onChange={(e:any)=>setLeaveTill(e.target.value)} placeholder="Till" style={{flex:1.5}}/>
-                    <button onClick={addLeave} style={{fontSize:"0.8rem", flex:0.45}}>
-                        {
-                            loading?
-                            <LoadingOutlined/>
-                            :
-                            <div style={{display:"flex", gap:"0.5rem", alignItems:"center"}}>
-                                <Plus width={"1.25rem"} color="violet"/>
-                            </div>
-                            
-                        }
-                        
-                    </button>
-                </div>
-                
-                
-                </>
-                
-                }/>
-
-                <DefaultDialog title={"Allowance"} titleIcon={<HandHelping/>} close open={allowanceDialog} onCancel={()=>setAllowanceDialog(false)}
-                extra={
-                    <div style={{display:"flex", border:"", width:"100%", borderRadius:"0.5rem", padding:"0.5rem", background:"", flexFlow:"column"}}>
+            {/* EDIT DIALOG */}
+            <DefaultDialog title={"Edit Item"} open={editDialog} onCancel={()=>setEditDialog(false)}  OkButtonText='Edit' onOk={deleteItem} updating={loading}/>
 
 
-                <p style={{fontSize:"0.8rem", opacity:0.5, justifyContent:"center", display:'flex'}}>Current Allowance</p>
-                    <div style={{display:"flex", border:"", gap:"0.5rem", justifyContent:"center", fontWeight:600}}>
-                    <p>OMR {allowance}</p>
-                    </div>
+            
 
-                    <div style={{border:"", height:"3rem", paddingTop:"", marginTop:"1.5rem", width:"100%"}}>
-                        <LineCharter lineColor="violet"/>
-                    </div>
-                </div>
-                }
-                />
 
             </div>
             

@@ -1,8 +1,8 @@
 import { LoadingOutlined } from "@ant-design/icons";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Tooltip } from "antd";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Hash, X } from "lucide-react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader } from "../components/ui/dialog";
+import { ChevronLeft, Hash, X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "../components/ui/dialog";
 import { Button } from "./ui/button";
 
 interface Props {
@@ -35,10 +35,10 @@ interface Props {
     tag2OnClick?:any
     tag3OnClick?:any
     tag4OnClick?:any
-    tag1Text?:string
-    tag2Text?:string
-    tag3Text?:string
-    tag4Text?:string
+    tag1Text?:any
+    tag2Text?:any
+    tag3Text?:any
+    tag4Text?:any
     onBottomTagClick?:any
     bottomTagValue?:any
     codeTooltip?:string
@@ -58,12 +58,13 @@ export default function DefaultDialog(props:Props){
                         <div className="flex" style={{border:"", justifyContent:"space-between"}}>
                             <div style={{display:"flex", alignItems:"center", gap:"1rem", border:"", width:"100%"}}>
                                 <div style={{border:"", height:"100%", display:"flex"}}>
-                                {props.titleIcon}
+                                
                                 </div>
                                 
                                 
-                                <div style={{display:"flex", flexFlow:"column", border:""}}>
+                                <div style={{display:"flex", flexFlow:"column", border:"", gap:"0.25rem"}}>
                                     <div style={{display:"flex", alignItems:"center", border:"", gap:"0.75rem"}}>
+                                        {props.titleIcon}
                                         {props.title}
                                         <p onClick={props.bigDate} style={{fontWeight:400, fontSize:"1rem", opacity:0.5, letterSpacing:"0.075rem", display:"flex", gap:"0.5rem"}}>    
                                             {props.created_on}
@@ -73,7 +74,7 @@ export default function DefaultDialog(props:Props){
                                 {
                                     props.code?
                                     <Tooltip title={props.codeTooltip} placement="right">
-                                    <p style={{fontSize:"0.8rem", fontWeight:400, border:"1px solid rgba(100 100 100)",borderRadius:"0.5rem",paddingLeft:"0.25rem", textAlign:"left", opacity:"0.75", display:'flex', gap:"0.5rem",alignItems:"center", paddingRight:"0.5rem", width:"fit-content"}}>
+                                    <p style={{fontSize:"0.8rem", fontWeight:400, border:"1px solid rgba(100 100 100/ 75%)",borderRadius:"0.5rem",paddingLeft:"0.25rem", textAlign:"left", opacity:"0.75", display:'flex', gap:"0.5rem",alignItems:"center", paddingRight:"0.5rem", width:"fit-content"}}>
                                         {
                                             props.codeIcon?
                                             props.codeIcon
@@ -109,13 +110,13 @@ export default function DefaultDialog(props:Props){
                     
                     {
                         props.tags?
-                        <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", border:"", width:"100%"}}>
+                        <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", border:"", width:"100%", paddingTop:"0.5rem", paddingBottom:"0.5rem"}}>
                         <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem"}}>
 
                             <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
                             {
                                 props.tag1Text?
-                                <p>{props.tag1Text}</p>
+                                props.tag1Text
                                 :
                                 "No Data"
                             }
@@ -124,12 +125,13 @@ export default function DefaultDialog(props:Props){
                             </div>
 
                             <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
-
-                            <p style={{opacity:0.5}}>
-                            Joined : 
-                            </p>
-                            <b>{props.tag2Text}</b>
-
+                            {
+                                props.tag2Text?
+                                props.tag2Text
+                                :
+                                "No Data"
+                            }
+                            
                             
                             </div>
 
@@ -137,23 +139,25 @@ export default function DefaultDialog(props:Props){
 
                         <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem"}}>
 
-                            <div onClick={props.tag3OnClick} style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
-
-                            <p style={{opacity:0.5}}>Basic : </p><b>{props.tag3Text}</b>  
-
-                            <p style={{display:"flex", alignItems:"center"}}>{"(10%)"}<ArrowUp color="lightgreen" width={"0.9rem"}/></p>                          
-
+                        <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                            {
+                                props.tag3Text?
+                                props.tag3Text
+                                :
+                                "No Data"
+                            }
+                            
                             
                             </div>
 
-                            <div onClick={props.tag4OnClick} style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.75rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
-
-                            <p style={{opacity:0.5}}>
-                            Allowance : 
-                            </p>
-                            <b>{props.tag4Text}</b>
-
-                            <p style={{display:"flex", alignItems:"center"}}>{"(1.2%)"}<ArrowDown color="tomato" width={"0.9rem"}/></p>
+                            <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                            {
+                                props.tag4Text?
+                                props.tag4Text
+                                :
+                                "No Data"
+                            }
+                            
                             
                             </div>
                             
@@ -181,7 +185,7 @@ export default function DefaultDialog(props:Props){
                         :null 
                     }
 
-                    {
+                    {/* {
                         props.tags?
                         <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", border:"", width:"100%", borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
                         <div style={{height:"2.25rem", border:"", width:"100%", display:'flex', gap:"0.5rem"}}>
@@ -203,7 +207,7 @@ export default function DefaultDialog(props:Props){
                         </div>
                         :null
 
-                    }
+                    } */}
 
                     
                     {
@@ -222,7 +226,7 @@ export default function DefaultDialog(props:Props){
 
                     
                     
-                    
+                    <DialogDescription/>
                     
                 </DialogHeader>
 
@@ -279,7 +283,7 @@ export default function DefaultDialog(props:Props){
                             
                         </Button>
 
-                        <Button id="cancelBtn" onClick={props.onCancel} style={{flex:1}}>
+                        <Button variant={"ghost"} id="cancelBtn" onClick={props.onCancel} style={{flex:1}}>
                             Cancel
                         </Button>
                     </div>

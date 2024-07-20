@@ -22,7 +22,7 @@ export default function Back(props:Props){
                 }
                 
                 
-                <div style={{display:"flex", alignItems:"center",marginLeft:"1rem",gap:"0.75rem"}}>
+                <div style={{display:"flex", alignItems:"center",marginLeft:"0.5rem",gap:"0.75rem"}}>
                     {props.icon}
                     <h2 style={{letterSpacing:"0.025rem", fontWeight:400, fontSize:"1.5rem"}}>{props.title}</h2>
                 </div>

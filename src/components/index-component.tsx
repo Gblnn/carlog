@@ -1,6 +1,9 @@
+import { auth } from '@/firebase';
+import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
-import { Car, Mail, Radar, RefreshCwIcon, Wrench } from "lucide-react";
+import { Car, LogOut, Mail, Radar, Wrench } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from 'react-router-dom';
 import Back from "../components/back";
 import DefaultDialog from "../components/default-dialog";
 import Directive from "../components/directive";
@@ -12,17 +15,33 @@ interface Props{
 export default function IndexComponent(props:Props){
 
     const [requestDialog, setRequestDialog] = useState(false)
+    const usenavigate = useNavigate()
 
     return(
         <div style={{padding:"1.5rem", background:"linear-gradient(rgba(18 18 80/ 65%), rgba(100 100 100/ 0%))", height:"90svh", border:""}}>
 
             <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
-                <Back icon={<Radar color="salmon"/>} title="CarLog" noback extra={<button onClick={()=>window.location.reload()} style={{paddingLeft:"1rem", paddingRight:"1rem", fontSize:"0.8rem"}}><RefreshCwIcon color="crimson" width={"1rem"}/>Update<p style={{opacity:0.5, letterSpacing:"0.15rem"}}>{props.version}</p></button>}/>
+
+                <Back icon={<Radar color='salmon'/>} title="CarLog" noback 
+                extra={
+                    <div style={{display:"flex", gap:"0.5rem"}}>
+
+                        <button onClick={()=>window.location.reload()} style={{paddingLeft:"1rem", paddingRight:"1rem", fontSize:"0.8rem"}}>
+                    
+                            Update
+                            <p style={{opacity:0.5, letterSpacing:"0.15rem"}}>{props.version}</p>
+                        </button>
+
+                        <button onClick={()=>{signOut(auth);usenavigate("/login")}} style={{width:"2.75rem"}}><LogOut width={"1rem"} color='lightcoral'/></button>
+                        
+                    </div>
+                    
+                }/>
                 <br/>
 
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
 
-                    <Directive to="/vehicles" title="Vehicles" icon={<Car color="violet" width={"1.1rem"}/>}/>
+                    <Directive to="/vehicles" title="Vehicles" icon={<Car color="violet" width={"1.25rem"}/>}/>
 
                     <Directive to="/maintenance" title="Maintenance" icon={<Wrench color='dodgerblue' width={"1.1rem"}/>}/>
 
