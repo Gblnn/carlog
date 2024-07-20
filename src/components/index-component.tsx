@@ -1,7 +1,7 @@
 import { auth } from '@/firebase';
 import { signOut } from 'firebase/auth';
 import { motion } from 'framer-motion';
-import { Car, LogOut, Mail, Radar, Wrench } from "lucide-react";
+import { Car, LogOut, Mail, Radar, RefreshCcw, Wrench } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from 'react-router-dom';
 import Back from "../components/back";
@@ -28,11 +28,11 @@ export default function IndexComponent(props:Props){
 
                         <button onClick={()=>window.location.reload()} style={{paddingLeft:"1rem", paddingRight:"1rem", fontSize:"0.8rem"}}>
                     
-                            Update
+                            <RefreshCcw width={"1rem"} color='dodgerblue'/>
                             <p style={{opacity:0.5, letterSpacing:"0.15rem"}}>{props.version}</p>
                         </button>
 
-                        <button onClick={()=>{signOut(auth);usenavigate("/login")}} style={{width:"2.75rem"}}><LogOut width={"1rem"} color='lightcoral'/></button>
+                        <button onClick={()=>{signOut(auth);usenavigate("/")}} style={{width:"3rem"}}><LogOut width={"1rem"} color='lightcoral'/></button>
                         
                     </div>
                     

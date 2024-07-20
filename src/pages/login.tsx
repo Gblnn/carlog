@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { auth } from "@/firebase";
 import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { CreditCard } from "lucide-react";
+import { KeyRound } from "lucide-react";
 import { useNavigate } from "react-router-dom";
  
 export default function Login(){
@@ -38,9 +38,9 @@ export default function Login(){
 
             <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", width:"80%", position:"absolute", bottom:0, margin:"3.5rem"}}>
 
-            <Button onClick={()=>usenavigate("/")} variant={"ghost"}>
-                <CreditCard color="dodgerblue" width={"1.25rem"}/>
-                Pass Key
+            <Button onClick={()=>usenavigate("/index")} variant={"ghost"}>
+                <KeyRound color="dodgerblue" width={"1.25rem"}/>
+                Temporary Key
             </Button>
 
             <Button onClick={SignUpWithGoogle} variant={"ghost"}>
