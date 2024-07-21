@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, Globe, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
@@ -49,6 +49,15 @@ export default function DbComponent(props:Props){
     const [chasisNumber, setChasisNumber] = useState("")
     const [modelNumber, setModelNumber] = useState("")
 
+    const [logType, setLogType] = useState("")
+    const [carName, setCarName] = useState("")
+    const [description, setDescription] = useState("")
+    const [amount, setAmount] = useState("")
+
+    const [editedCarName, setEditedCarName] = useState("")
+    const [editedDescription, setEditedDescription] = useState("")
+    const [editedAmount, setEditedAmount] = useState("")
+
     const [deleteDialog, setDeleteDialog] = useState(false)
     const [editDialog, setEditDialog] = useState(false)
 
@@ -87,6 +96,8 @@ export default function DbComponent(props:Props){
     // MAILJS VARIABLES
     const serviceId = "service_lunn2bp";
     const templateId = "template_1y0oq9l";
+
+    const [resetTags, setResetTags] = useState(false)
 
 {/* //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/}
 
@@ -193,7 +204,7 @@ export default function DbComponent(props:Props){
             {
                 created_on:Timestamp.fromDate(new Date()), 
                 vehicleNumber:editedVehicleNumber, 
-                vehicleName:editedVehicleName, 
+                type:editedVehicleName, 
                 vehicleOwner:editedVehicleOwner, 
                 chasisNumber:editedChasisNumber, 
                 modelNumber:editedModelNumber
@@ -220,6 +231,29 @@ export default function DbComponent(props:Props){
         setLoading(false)
         setDeleteDialog(false)
         setItemDialog(false)
+    }
+
+    const addLog = async () => {
+        try {
+            setLoading(true)
+            await addDoc(collection(db, props.db), 
+            {
+                created_on:Timestamp.fromDate(new Date()), 
+                type:logType, 
+                carName:carName, 
+                description:description, 
+                amount:amount
+            })
+
+            setLoading(false)
+            fetchData()
+            setResetTags(!resetTags)
+            setLogDialog(false)
+            
+        } catch (error) {
+            message.error(String(error))
+            setLoading(false)     
+        }
     }
 
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
@@ -464,7 +498,7 @@ export default function DbComponent(props:Props){
 
                             <Directive 
                                 
-                                tag={post.vehicleNumber}
+                                tag={props.db=="maintenance"?"OMR "+post.amount:post.vehicleNumber}
                                 
                                 selected={selected}
 
@@ -472,7 +506,7 @@ export default function DbComponent(props:Props){
 
                                 status
 
-                                id_subtitle={post.modelNumber}
+                                id_subtitle={props.db=="maintenance"?post.carName:post.modelNumber}
                             
                                 // ON CLICK
                                 onSelect={()=>{
@@ -482,13 +516,28 @@ export default function DbComponent(props:Props){
                                     setItemDialog(true)
                                     setID(post.id);
                                     setVehicleNumber(post.vehicleNumber)
-                                    setVehicleName(post.vehicleName)
+                                    setVehicleName(post.type)
                                     setVehicleOwner(post.vehicleOwner)
                                     setChasisNumber(post.chasisNumber)
                                     setModelNumber(post.modelNumber)
                                 }}                        
 
-                            key={post.id} title={post.vehicleName} icon={<Car color="dodgerblue" />} />
+                            key={post.id} title={post.type} 
+                            icon={
+                                post.type=="fuel"?
+                                <Fuel width={"1.5rem"} color='goldenrod'/>
+                                :
+                                post.type=="service"?
+                                <Wrench color='dodgerblue' width={"1.5rem"}/>
+                                :
+                                post.type=="parts"?
+                                <Cog color='violet' width={"1.5rem"}/>
+                                :
+                                post.type=="other"?
+                                <Globe width={"1.5rem"}/>
+                                :
+                                <Car color='dodgerblue' width={"1.5rem"}/>
+                            } />
                         </motion.div>
                     ))
                 }
@@ -603,38 +652,49 @@ export default function DbComponent(props:Props){
             />
 
             {/* ADD ITEM DIALOG */}
-            <DefaultDialog open={logDialog} onCancel={()=>setLogDialog(false)} title={"Add Log"} titleIcon={<FilePlus/>}
+            <DefaultDialog created_on={logType} open={logDialog} onCancel={()=>{setLogDialog(false);setLogType("");setResetTags(!resetTags)}} title={"Add Log"} titleIcon={<FilePlus/>}
+            updating={loading}
+            disabled={loading}
+            onOk={addLog}
             OkButtonText='Add'
+            resetTags={resetTags}
             tags
             tag1Text={
 
-                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                <div  onClick={()=>setLogType("fuel")} style={{display:"flex", alignItems:"center", gap:"0.75rem", width:"100%", justifyContent:"center"}}>
                     <Fuel width={"1rem"}/>
                     Fuel
                 </div>
             }
 
+            
+
             tag2Text={
-                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                <div onClick={()=>setLogType("service")} style={{display:"flex", alignItems:"center", gap:"0.75rem", width:"100%", justifyContent:"center"}}>
                     <Wrench width={"1rem"}/>
                     Service
                 </div>
             }
 
             tag3Text={
-                <div style={{display:"flex", alignItems:"center", gap:"0.75rem"}}>
+                <div onClick={()=>setLogType("parts")} style={{display:"flex", alignItems:"center", gap:"0.75rem" , width:"100%", justifyContent:"center"}}>
                     <Cog width={"1rem"}/>
                     Parts
                 </div>
             }
 
-            tag4Text={"Other"}
+            tag4Text={
+                <div onClick={()=>setLogType("other")} style={{display:"flex", alignItems:"center", gap:"0.75rem", width:"100%", justifyContent:"center"}}>
+                    <Globe width={"1rem"}/>
+                    Other
+                </div>
+            }
 
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                    <SelectMenu db='vehicles'/>
-                    <input placeholder='Description'/>
-                    <input placeholder='Amount'/>
+                    <SelectMenu db='vehicles' onChange={setCarName}/>
+                    <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
+                    <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                 </div>
                 
             }

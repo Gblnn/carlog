@@ -2,6 +2,7 @@ import { LoadingOutlined } from "@ant-design/icons";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { Tooltip } from "antd";
 import { ChevronLeft, Hash, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader } from "../components/ui/dialog";
 import { Button } from "./ui/button";
 
@@ -42,10 +43,17 @@ interface Props {
     onBottomTagClick?:any
     bottomTagValue?:any
     codeTooltip?:string
+    resetTags?:boolean
 }
 
 
 export default function DefaultDialog(props:Props){
+
+    useEffect(()=>{
+        setSelectedTag("")
+    },[props.resetTags])
+
+    const [selectedTag, setSelectedTag] = useState("")
     
     return(
         <>
@@ -110,10 +118,10 @@ export default function DefaultDialog(props:Props){
                     
                     {
                         props.tags?
-                        <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", border:"", width:"100%", paddingTop:"0.5rem", paddingBottom:"0.5rem"}}>
-                        <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem"}}>
+                        <div  style={{display:"flex", flexFlow:"column", gap:"0.5rem", border:"", width:"100%", paddingTop:"", paddingBottom:"0.5rem"}}>
+                        <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem", fontWeight:"500"}}>
 
-                            <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                            <div className="transitions" onClick={()=>{setSelectedTag("tag1");props.tag1OnClick}} style={{background:selectedTag=="tag1"?"goldenrod":"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer", color:selectedTag=="tag1"?"black":""}}>
                             {
                                 props.tag1Text?
                                 props.tag1Text
@@ -124,7 +132,7 @@ export default function DefaultDialog(props:Props){
                             
                             </div>
 
-                            <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                            <div className="transitions" onClick={()=>{setSelectedTag("tag2");props.tag2OnClick}} style={{background:selectedTag=="tag2"?"dodgerblue":"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer", color:selectedTag=="tag2"?"black":""}}>
                             {
                                 props.tag2Text?
                                 props.tag2Text
@@ -137,9 +145,9 @@ export default function DefaultDialog(props:Props){
 
                         </div>
 
-                        <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem"}}>
+                        <div style={{height:"2rem", border:"", width:"100%", display:'flex', gap:"0.5rem", fontWeight:"500"}}>
 
-                        <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                        <div className="transitions" onClick={()=>{setSelectedTag("tag3");props.tag3OnClick}}   style={{background:selectedTag=="tag3"?"violet":"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer", color:selectedTag=="tag3"?"black":""}}>
                             {
                                 props.tag3Text?
                                 props.tag3Text
@@ -150,7 +158,7 @@ export default function DefaultDialog(props:Props){
                             
                             </div>
 
-                            <div style={{background:"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
+                            <div className="transitions" onClick={()=>{setSelectedTag("tag4");props.tag4OnClick}} style={{background:selectedTag=="tag4"?"rgba(100 100 100/ 50%)":"rgba(100 100 100/ 25%)", fontSize:"0.8rem", display:"flex", alignItems:"center", paddingRight:"0.75rem", paddingLeft:"0.75rem", borderRadius:"0.5rem", gap:"0.25rem", flex:1, justifyContent:"center", cursor:"pointer"}}>
                             {
                                 props.tag4Text?
                                 props.tag4Text

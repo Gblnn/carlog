@@ -25,6 +25,16 @@ button {
   cursor: pointer;
 }
 
+.desktop-only {
+  display: none;
+}
+
+@media (width>720px) {
+  .desktop-only {
+    display: flex;
+  }
+}
+
 /* button:hover {
   background-color: rgba(100 100 100/ 25%);
 } */

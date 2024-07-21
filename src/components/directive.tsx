@@ -58,11 +58,11 @@ export default function Directive(props:Props){
                     
 
                     <div style={{border:'', width:""}}>
-                    <p style={{fontWeight:400, textAlign:"left", border:"", width:"", fontSize:props.titleSize?props.titleSize:"0.9rem"}}>
+                    <p style={{fontWeight:400, textAlign:"left", border:"", width:"", fontSize:props.titleSize?props.titleSize:"0.9rem", textTransform:"capitalize"}}>
                         {props.title}
                     </p>
 
-                    {/* <p style={{fontSize:"0.65rem", textAlign:"left", color:"dodgerblue",opacity:"0.75", background:"", borderRadius:"0.5rem", paddingRight:"0.25rem", paddingLeft:"", fontWeight:600, textTransform:"uppercase"}}>{props.id_subtitle}</p> */}
+                    <p style={{fontSize:"0.65rem", textAlign:"left", color:"dodgerblue",opacity:"0.75", background:"", borderRadius:"0.5rem", paddingRight:"0.25rem", paddingLeft:"", fontWeight:600, textTransform:"uppercase"}}>{props.id_subtitle}</p>
                     </div>
                     
 
@@ -93,7 +93,7 @@ export default function Directive(props:Props){
                 
                 props.tag?
                 
-                <p style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.8rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem"}}>
+                <p style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.8rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem", textTransform:"uppercase"}}>
                     {props.tag}
                     {/* <div style={{height:"0.5rem", width:"0.5rem", background:"dodgerblue", borderRadius:"50%"}}></div> */}
                     </p>

@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 interface Props{
     db:string
+    onChange?:any
 }
 
 export default function SelectMenu(props:Props){
@@ -46,7 +47,7 @@ export default function SelectMenu(props:Props){
 
     
     return(
-        <Select>
+        <Select onValueChange={props.onChange}>
             <SelectTrigger style={{background:"rgba(100 100 100/ 20%)", fontSize:"1rem", paddingLeft:"1rem", opacity:0.75, display:"flex", justifyContent:"space-between", border:"", fontWeight:400}}>
                 {
                     fetchingData?
@@ -60,7 +61,7 @@ export default function SelectMenu(props:Props){
                 {
                     records?
                     records.map((r:any)=>(
-                        <SelectItem value={r.vehicleName}>{r.vehicleName}</SelectItem>
+                        <SelectItem key={r.id} value={r.type}>{r.type}</SelectItem>
                     ))
                     :null
                 }
