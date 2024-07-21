@@ -3,6 +3,6 @@ import IndexComponent from "@/components/index-component";
 
 export default function Index(){
     return(
-        <IndexComponent version="v1.2"/>
+        <IndexComponent version="v1.4"/>
     )
 }

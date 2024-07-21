@@ -738,7 +738,7 @@ export default function DbComponent(props:Props){
                 }
 
                 extra={
-                    <div style={{display:"flex", gap:"0.5rem", paddingLeft:"1rem", fontSize:"3rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
+                    <div style={{display:"flex", gap:"0.5rem", paddingLeft:"1rem", fontSize:"4rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
                         
                         <p>{amount}</p>
                         <p style={{fontSize:"1rem", opacity:0.5}}>OMR</p>
