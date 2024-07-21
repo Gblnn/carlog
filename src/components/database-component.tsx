@@ -54,9 +54,9 @@ export default function DbComponent(props:Props){
     const [description, setDescription] = useState("")
     const [amount, setAmount] = useState("")
 
-    const [editedCarName, setEditedCarName] = useState("")
-    const [editedDescription, setEditedDescription] = useState("")
-    const [editedAmount, setEditedAmount] = useState("")
+    // const [editedCarName, setEditedCarName] = useState("")
+    // const [editedDescription, setEditedDescription] = useState("")
+    // const [editedAmount, setEditedAmount] = useState("")
 
     const [deleteDialog, setDeleteDialog] = useState(false)
     const [editDialog, setEditDialog] = useState(false)
