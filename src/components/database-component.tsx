@@ -70,6 +70,8 @@ export default function DbComponent(props:Props){
     const [itemDialog, setItemDialog] = useState(false)
     const [logDialog, setLogDialog] = useState(false)
 
+    const [logDisplayDialog, setLogDisplayDialog] = useState(false)
+
     //MAIL CONFIG VARIABLES
     const [addDialog, setAddDialog] = useState(false)
 
@@ -513,13 +515,23 @@ export default function DbComponent(props:Props){
                                     handleSelect(post.id)
                                 }}
                                 onClick={()=>{
-                                    setItemDialog(true)
                                     setID(post.id);
-                                    setVehicleNumber(post.vehicleNumber)
-                                    setVehicleName(post.type)
-                                    setVehicleOwner(post.vehicleOwner)
-                                    setChasisNumber(post.chasisNumber)
-                                    setModelNumber(post.modelNumber)
+                                    if(props.db=="vehicles"){
+                                        setItemDialog(true)
+                                        setVehicleNumber(post.vehicleNumber)
+                                        setVehicleName(post.type)
+                                        setVehicleOwner(post.vehicleOwner)
+                                        setChasisNumber(post.chasisNumber)
+                                        setModelNumber(post.modelNumber)
+                                    }
+                                    if(props.db=="maintenance"){
+                                        setLogDisplayDialog(true)
+                                        setLogType(post.type)
+                                        setCarName(post.carName)
+                                        setDescription(post.description)
+                                        setAmount(post.amount)
+                                    }
+                                    
                                 }}                        
 
                             key={post.id} title={post.type} 
@@ -709,7 +721,31 @@ export default function DbComponent(props:Props){
             <DefaultDialog title={"Edit Item"} open={editDialog} onCancel={()=>setEditDialog(false)}  OkButtonText='Edit' onOk={deleteItem} updating={loading}/>
 
 
-            
+            <DefaultDialog close title={logType} open={logDisplayDialog} onCancel={()=>setLogDisplayDialog(false)}
+                titleIcon={
+                    logType=="fuel"?
+                    <Fuel color='goldenrod'/>
+                    :
+                    logType=="service"?
+                    <Wrench color='dodgerblue'/>
+                    :
+                    logType=="parts"?
+                    <Cog color='violet'/>
+                    :
+                    logType=="other"&&
+                    <Globe/>
+                    
+                }
+
+                extra={
+                    <div style={{display:"flex", gap:"0.5rem", paddingLeft:"1rem", fontSize:"3rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
+                        
+                        <p>{amount}</p>
+                        <p style={{fontSize:"1rem", opacity:0.5}}>OMR</p>
+                    </div>
+                }
+                
+                />
 
 
             </div>

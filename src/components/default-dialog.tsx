@@ -71,7 +71,7 @@ export default function DefaultDialog(props:Props){
                                 
                                 
                                 <div style={{display:"flex", flexFlow:"column", border:"", gap:"0.25rem"}}>
-                                    <div style={{display:"flex", alignItems:"center", border:"", gap:"0.75rem"}}>
+                                    <div style={{display:"flex", alignItems:"center", border:"", gap:"0.75rem", textTransform:"capitalize"}}>
                                         {props.titleIcon}
                                         {props.title}
                                         <p onClick={props.bigDate} style={{fontWeight:400, fontSize:"1rem", opacity:0.5, letterSpacing:"0.075rem", display:"flex", gap:"0.5rem"}}>    

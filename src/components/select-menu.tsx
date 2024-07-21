@@ -48,7 +48,7 @@ export default function SelectMenu(props:Props){
     
     return(
         <Select onValueChange={props.onChange}>
-            <SelectTrigger style={{background:"rgba(100 100 100/ 20%)", fontSize:"1rem", paddingLeft:"1rem", opacity:0.75, display:"flex", justifyContent:"space-between", border:"", fontWeight:400}}>
+            <SelectTrigger style={{background:"rgba(100 100 100/ 35%)", fontSize:"1rem", paddingLeft:"1rem", opacity:0.75, display:"flex", justifyContent:"space-between", border:"", fontWeight:400}}>
                 {
                     fetchingData?
                     <LoadingOutlined/>
