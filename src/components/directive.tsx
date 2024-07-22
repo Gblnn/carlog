@@ -93,7 +93,7 @@ export default function Directive(props:Props){
                 
                 props.tag?
                 
-                <p style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.8rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem", textTransform:"uppercase"}}>
+                <p style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.8rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem", textTransform:"capitalize"}}>
                     {props.tag}
                     {/* <div style={{height:"0.5rem", width:"0.5rem", background:"dodgerblue", borderRadius:"50%"}}></div> */}
                     </p>

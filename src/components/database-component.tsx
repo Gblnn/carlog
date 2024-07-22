@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, Fuel, Globe, MailCheck, PackageOpen, RadioTower, RefreshCcw, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
@@ -93,6 +93,10 @@ export default function DbComponent(props:Props){
     const [status, setStatus] = useState("")
 
     const [selectAll, setSelectAll] = useState(false)
+    const [bulkDeleteDialog, setBulkDeleteDialog] = useState(false)
+
+    const [progress, setProgress] = useState("")
+    const [progressItem, setProgressItem] = useState<any>()
     
 
     // MAILJS VARIABLES
@@ -294,6 +298,38 @@ export default function DbComponent(props:Props){
             newVal.splice(index, 1)
             setChecked(newVal)
         }   
+    }
+
+    const handleBulkDelete = async () => {
+        try {
+            let counts = 0
+            let percentage = 100/checked.length
+            setLoading(true)
+            
+            await checked.forEach(async (item:any) => {
+                await deleteDoc(doc(db, "records", item))
+                counts++
+                setProgress(String(percentage*counts)+"%")
+                setProgressItem(item)
+            
+
+                if(checked.length==counts){
+                    setLoading(false)
+                    
+                    setBulkDeleteDialog(false)
+                    setAddButtonModeSwap(false)
+                    setSelectable(false)
+                    fetchData()
+                    setProgress("")
+                }
+            });
+
+            
+            
+
+        } catch (error) {
+            message.info(String(error))
+        }
     }
 
 
@@ -601,7 +637,12 @@ export default function DbComponent(props:Props){
             onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
                 icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:<Plus color="dodgerblue" width="1rem"/>}/> */}
 
-            <AddItemButton title={props.addItemTitle} icon={props.addItemIcon} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)}/>
+            <AddItemButton title={props.addItemTitle} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)} 
+            alternateOnClick={
+                ()=>{checked.length<1?null:setBulkDeleteDialog(true)}
+            }
+            icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:props.addItemIcon}
+            />
 
 
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
@@ -652,6 +693,7 @@ export default function DbComponent(props:Props){
                     <DropDown onDelete={()=>setDeleteDialog(true)} onEdit={()=>setEditDialog(true)} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
                 </div>
             }
+            
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
                     <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
@@ -712,10 +754,12 @@ export default function DbComponent(props:Props){
             }
             />
 
-            
 
             {/* DELETE DIALOG */}
             <DefaultDialog title={"Delete Item?"} open={deleteDialog} onCancel={()=>setDeleteDialog(false)} destructive OkButtonText='Delete' onOk={deleteItem} updating={loading}/>
+
+            {/* BULK DELETE DIALOG */}
+            <DefaultDialog progressItem={progressItem} progress={progress} destructive updating={loading} title="Delete record(s)?" open={bulkDeleteDialog} OkButtonText="Confirm" onCancel={()=>setBulkDeleteDialog(false)} onOk={handleBulkDelete} disabled={loading}/>
 
             {/* EDIT DIALOG */}
             <DefaultDialog title={"Edit Item"} open={editDialog} onCancel={()=>setEditDialog(false)}  OkButtonText='Edit' onOk={deleteItem} updating={loading}/>
@@ -737,13 +781,29 @@ export default function DbComponent(props:Props){
                     
                 }
 
+                title_extra={
+                    <div style={{display:"flex", gap:"0.5rem", alignItems:"center"}}>
+                        <DropDown onDelete={()=>setDeleteDialog(true)} onEdit={()=>setEditDialog(true)} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
+                    </div>
+                }
+
                 extra={
+                    <>
+                    
                     <div style={{display:"flex", gap:"0.5rem", paddingLeft:"1rem", fontSize:"4rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
                         
                         <p>{amount}</p>
                         <p style={{fontSize:"1rem", opacity:0.5}}>OMR</p>
+                        
                     </div>
+                    <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                        <Directive icon={<CarFront/>} title={carName}/>
+                        <Directive icon={<FileSpreadsheet/>} title={"Description"} tag={description?description:"No Description"} status/>
+                    </div>
+                    </>
                 }
+
+                
                 
                 />
 
