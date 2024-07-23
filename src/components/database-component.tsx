@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
@@ -16,10 +16,6 @@ import AddItemDialog from './add-item-dialog'
 import Back from "./back"
 import DropDown from './dropdown'
 import SelectMenu from './select-menu'
-
-
-// Running Notes
-// Check whether expiry date minus 3 is equals to today - 3 month reminder
 
 interface Props{
     title?:string
