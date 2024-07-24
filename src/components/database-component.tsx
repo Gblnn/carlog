@@ -3,7 +3,7 @@ import emailjs from '@emailjs/browser'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
@@ -303,7 +303,7 @@ export default function DbComponent(props:Props){
             setLoading(true)
             
             await checked.forEach(async (item:any) => {
-                await deleteDoc(doc(db, "records", item))
+                await deleteDoc(doc(db, props.db, item))
                 counts++
                 setProgress(String(percentage*counts)+"%")
                 setProgressItem(item)
@@ -633,7 +633,7 @@ export default function DbComponent(props:Props){
             onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
                 icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:<Plus color="dodgerblue" width="1rem"/>}/> */}
 
-            <AddItemButton title={props.addItemTitle} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)} 
+            <AddItemButton title={addButtonModeSwap?"Delete":"Add"} onClickSwap={addButtonModeSwap} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)} 
             alternateOnClick={
                 ()=>{checked.length<1?null:setBulkDeleteDialog(true)}
             }
@@ -758,7 +758,8 @@ export default function DbComponent(props:Props){
             <DefaultDialog progressItem={progressItem} progress={progress} destructive updating={loading} title="Delete record(s)?" open={bulkDeleteDialog} OkButtonText="Confirm" onCancel={()=>setBulkDeleteDialog(false)} onOk={handleBulkDelete} disabled={loading}/>
 
             {/* EDIT DIALOG */}
-            <DefaultDialog title={"Edit Item"} open={editDialog} onCancel={()=>setEditDialog(false)}  OkButtonText='Edit' onOk={deleteItem} updating={loading}/>
+            <DefaultDialog title={"Edit"} titleIcon={<PenLine/>} open={editDialog} onCancel={()=>setEditDialog(false)}  OkButtonText='Update' onOk={deleteItem} updating={loading}
+            />
 
 
             <DefaultDialog close title={logType} open={logDisplayDialog} onCancel={()=>setLogDisplayDialog(false)}
