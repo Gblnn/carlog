@@ -5,12 +5,12 @@ import { getAuth } from 'firebase/auth'
 
 const firebaseConfig = {
 
-  apiKey: "AIzaSyBuIJ9gGx2eRvKtOVjJyNs8CR6UmqG23QE",
-  authDomain: "maintenance-log-89655.firebaseapp.com",
-  projectId: "maintenance-log-89655",
-  storageBucket: "maintenance-log-89655.appspot.com",
-  messagingSenderId: "825309636275",
-  appId: "1:825309636275:web:5b41ede2903668897ab2c6"
+  apiKey: "AIzaSyAP72-7govcVkF4rN9RS7ME8Uuna9VAMag",
+  authDomain: "carlog-record.firebaseapp.com",
+  projectId: "carlog-record",
+  storageBucket: "carlog-record.appspot.com",
+  messagingSenderId: "706183165791",
+  appId: "1:706183165791:web:9d3d9752e821e1972968ea"
   
   };
 
