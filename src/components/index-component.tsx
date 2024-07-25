@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import Back from "../components/back";
 import DefaultDialog from "../components/default-dialog";
 import Directive from "../components/directive";
+import { message } from 'antd';
 
 interface Props{
     version?:string
@@ -32,7 +33,7 @@ export default function IndexComponent(props:Props){
                             <p style={{opacity:0.5, letterSpacing:"0.15rem"}}>{props.version}</p>
                         </button>
 
-                        <button onClick={()=>{signOut(auth);usenavigate("/")}} style={{width:"3rem"}}><LogOut width={"1rem"} color='lightcoral'/></button>
+                        <button onClick={()=>{signOut(auth).then(()=>{usenavigate("/")}).catch((e)=>message.error(String(e.message)));}} style={{width:"3rem"}}><LogOut width={"1rem"} color='lightcoral'/></button>
                         
                     </div>
                     

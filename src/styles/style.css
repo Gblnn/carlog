@@ -29,7 +29,7 @@ button {
   display: none;
 }
 
-@media (width>720px) {
+@media (width>850px) {
   .desktop-only {
     display: flex;
   }
