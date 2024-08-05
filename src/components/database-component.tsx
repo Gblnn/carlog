@@ -232,6 +232,7 @@ export default function DbComponent(props:Props){
         await deleteDoc(doc(db, props.db, id))
         setLoading(false)
         setDeleteDialog(false)
+        setDeleteDialog(false)
         setItemDialog(false)
     }
 
