@@ -43,6 +43,7 @@ interface Props{
     input5Label?:string
     input6Label?:string
     input7Label?:string
+    input2Disabled?:boolean
     extra?:any
     image?:any
 }
@@ -97,7 +98,7 @@ export default function InputDialog(props:Props){
                                 :null
                             }
                             
-                            <input id='input-2' defaultValue={props.input2Value} placeholder={props.input2placeholder} onChange={props.input2OnChange}/>
+                            <input className={props.input2Disabled?'disabled':""} disabled={props.input2Disabled} id='input-2' defaultValue={props.input2Value} placeholder={props.input2placeholder} onChange={props.input2OnChange}/>
                         </div>
                         
                         :null

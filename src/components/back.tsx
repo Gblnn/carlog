@@ -6,6 +6,7 @@ interface Props{
     title?:any
     extra?:any
     noback?:boolean
+    subtitle?:string
 }
 
 export default function Back(props:Props){
@@ -24,7 +25,15 @@ export default function Back(props:Props){
                 
                 <div style={{display:"flex", alignItems:"center",marginLeft:"0.5rem",gap:"0.75rem"}}>
                     {props.icon}
-                    <h2 style={{letterSpacing:"0.025rem", fontWeight:400, fontSize:"1.5rem"}}>{props.title}</h2>
+                    <div style={{display:"flex", flexFlow:"column"}}>
+                        <h2 style={{letterSpacing:"0.025rem", fontWeight:400, fontSize:"1.25rem", border:"", height:"1.65rem"}}>{props.title}</h2>
+                        {
+                            props.subtitle&&
+                            <h3 style={{fontSize:"0.7rem", opacity:0.5}}>{props.subtitle}</h3>
+                        }
+                    
+                    </div>
+                    
                 </div>
 
             </div>

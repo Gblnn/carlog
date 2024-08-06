@@ -1,6 +1,6 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import emailjs from '@emailjs/browser'
-import { message } from 'antd'
+import { ConfigProvider, DatePicker, message, theme } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
 import { motion } from 'framer-motion'
 import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
@@ -14,8 +14,10 @@ import { db } from "../firebase"
 import AddItemButton from './add-item-button'
 import AddItemDialog from './add-item-dialog'
 import Back from "./back"
+import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import SelectMenu from './select-menu'
+import { useNavigate } from 'react-router-dom'
 
 interface Props{
     title?:string
@@ -26,18 +28,20 @@ interface Props{
     addItemTitle?:string
     addItemIcon?:any
     type?:string
+    dbID:string
 }
 
 
 export default function DbComponent(props:Props){
 
-    // const usenavigate = useNavigate()
+    const usenavigate = useNavigate()
     
     // BASIC PAGE VARIABLES
     const [records, setRecords] = useState<any>([])
     const [id, setID] = useState("")
     const [loading, setLoading] = useState(false)
     const [addButtonModeSwap, setAddButtonModeSwap] = useState(false)
+    const [deleteDbDialog, setDeleteDbDialog] = useState(false)
 
     const [vehicleNumber, setVehicleNumber] = useState("")
     const [vehicleName, setVehicleName] = useState("")
@@ -101,7 +105,8 @@ export default function DbComponent(props:Props){
 
     const [resetTags, setResetTags] = useState(false)
 
-{/* //////////////////////////////////////////////////////////////////////////////////////////////////////////////*/}
+
+{/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
 
 
     // REALTIME AUTO UPDATE
@@ -329,6 +334,19 @@ export default function DbComponent(props:Props){
         }
     }
 
+    const deleteDatabase = async () => {
+        try {
+            setLoading(true)
+            await deleteDoc(doc(db, "databases", props.dbID))
+            setLoading(false)
+            setDeleteDbDialog(false)
+            usenavigate(-1)
+        } catch (error) {
+            setLoading(false)
+            
+        }
+    }
+
 
     return(
         <>
@@ -356,45 +374,34 @@ export default function DbComponent(props:Props){
             {/* Main Component */}
             <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
 
-            <div>
-
-            </div>
+            
                 {/* BACK BUTTON */}
-                <Back title={props.title+
-                
-                " ("+records.length+")"} 
+                <Back subtitle={props.title} title={"Records"
+                +
+                " ("+records.length+")"
+            } 
                 extra={
                     !selectable?
                     <div style={{display:"flex", gap:"0.5rem", height:"2.75rem"}}>
                         
-                        {/* <button style={{paddingLeft:"1rem", paddingRight:"1rem"}} onClick={()=>{setExcelUploadDialog(true)}}><Upload width={"1rem"} color="dodgerblue"/></button> */}
-                    
-                        {/* <button style={{paddingLeft:"1rem", paddingRight:"1rem"}} onClick={()=>setMailConfigDialog(true)}>
-                        {
-                            loading?
-                            <LoadingOutlined color="dodgerblue"/>
-                            :
-                            <BellRing width="1.1rem" color="dodgerblue"/>
-                            
-                        }
-                        </button> */}
 
                         
                         <button className="transitions blue-glass" style={{paddingLeft:"1rem", paddingRight:"1rem", width:"3rem"}} onClick={()=>{fetchData("refresh")}} >
 
                             {
                                 fetchingData?
-                                <>
+                            
                                 <LoadingOutlined style={{color:"dodgerblue"}}/>
-                                {/* <p style={{fontSize:"0.8rem", opacity:0.5}}>Updating</p> */}
-                                </>
+                                
                                 
                                 :
                                 <RefreshCcw width={"1.25rem"} height={"1.25rem"} color="dodgerblue"/>
                             }
                             
 
-                            </button>
+                        </button>
+
+                        <DbDropDown trigger={<EllipsisVerticalIcon width={"1rem"}/>} onDeleteDatabase={()=>setDeleteDbDialog(true)}/>
 
 
                             {/* <button onClick={()=>usenavigate("/inbox")} style={{ width:"3rem", background:"rgba(220 20 60/ 20%)"}}>
@@ -426,6 +433,10 @@ export default function DbComponent(props:Props){
                     }
                 />
                 <br/>
+
+                {/* <div style={{border:""}}>
+                    <Tab/>
+                </div> */}
 
                 {// if page doesn't load : 
 
@@ -510,11 +521,14 @@ export default function DbComponent(props:Props){
 
                         <SearchBar placeholder="Search Records" onChange={(e:any)=>{setSearch(e.target.value.toLowerCase())}}/>
                     </div>
+
+                
                      
 
                     <p style={{height:"0.25rem"}}/>
                 
                 <div className="record-list" style={{display:"flex", gap:"0.6rem", flexFlow:"column", overflowY:"auto", height:"72svh", paddingTop:"0.25rem", paddingRight:"0.5rem"}}>
+                    
                 {
                     // RECORD DATA MAPPING
                     records
@@ -549,14 +563,14 @@ export default function DbComponent(props:Props){
                                 }}
                                 onClick={()=>{
                                     setID(post.id);
-                                    if(props.db=="vehicles"){
-                                        setItemDialog(true)
-                                        setVehicleNumber(post.vehicleNumber)
-                                        setVehicleName(post.type)
-                                        setVehicleOwner(post.vehicleOwner)
-                                        setChasisNumber(post.chasisNumber)
-                                        setModelNumber(post.modelNumber)
-                                    }
+                                    
+                                    setItemDialog(true)
+                                    setVehicleNumber(post.vehicleNumber)
+                                    setVehicleName(post.type)
+                                    setVehicleOwner(post.vehicleOwner)
+                                    setChasisNumber(post.chasisNumber)
+                                    setModelNumber(post.modelNumber)
+                                    
                                     if(props.db=="maintenance"){
                                         setLogDisplayDialog(true)
                                         setLogType(post.type)
@@ -629,6 +643,7 @@ export default function DbComponent(props:Props){
 
             {/* ADD RECORD BUTTON */}
 
+
             {/* <AddRecordButton title={addButtonModeSwap?"Delete Record(s)":"Add Record"} 
             onClickSwap={addButtonModeSwap} 
             onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
@@ -645,6 +660,8 @@ export default function DbComponent(props:Props){
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
 
             {/* Dialog Boxes 👇*/}
+
+            <DefaultDialog open={deleteDbDialog} destructive onCancel={()=>setDeleteDbDialog(false)} title={"Delete Database?"} extra={<p style={{textAlign:"left", fontSize:"0.8rem", opacity:0.5, marginBottom:"", margin:"1rem", marginTop:"0"}}>This will irrecoverably delete all data within this database, please proceed with caution</p>} OkButtonText='Delete' onOk={deleteDatabase} updating={loading} disabled={loading}/>
 
 
             {/* Upload Excel files Dialog */}
@@ -746,6 +763,10 @@ export default function DbComponent(props:Props){
                     <SelectMenu db='vehicles' onChange={setCarName}/>
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
+                    <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
+                    <DatePicker format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1.1rem", background:"none"}}/>
+                    </ConfigProvider>
+                    
                 </div>
                 
             }
