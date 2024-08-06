@@ -1,14 +1,13 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import emailjs from '@emailjs/browser'
 import { ConfigProvider, DatePicker, message, theme } from 'antd'
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, CloudUpload, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, MailCheck, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
+import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
 import DefaultDialog from "../components/default-dialog"
 import Directive from "../components/directive"
-import FileInput from "../components/file-input"
 import SearchBar from "../components/searchbar"
 import { db } from "../firebase"
 import AddItemButton from './add-item-button'
@@ -17,7 +16,6 @@ import Back from "./back"
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import SelectMenu from './select-menu'
-import { useNavigate } from 'react-router-dom'
 
 interface Props{
     title?:string
@@ -75,14 +73,6 @@ export default function DbComponent(props:Props){
     //MAIL CONFIG VARIABLES
     const [addDialog, setAddDialog] = useState(false)
 
-    //MAIL CONFIG VALUES
-    const [mailconfigdialog, setMailConfigDialog] = useState(false)
-    const [recipient, setRecipient] = useState("")
-    const [testmessage, setTestMessage] = useState("")
-
-
-    const [excel_upload_dialog, setExcelUploadDialog] = useState(false)
-
     const [selectable, setSelectable] = useState(false)
     const [search, setSearch] = useState("")
 
@@ -100,8 +90,8 @@ export default function DbComponent(props:Props){
     
 
     // MAILJS VARIABLES
-    const serviceId = "service_lunn2bp";
-    const templateId = "template_1y0oq9l";
+    // const serviceId = "service_lunn2bp";
+    // const templateId = "template_1y0oq9l";
 
     const [resetTags, setResetTags] = useState(false)
 
@@ -137,10 +127,6 @@ export default function DbComponent(props:Props){
             flushHeldKeys
         }
     )
-
-    // const TimeStamper = (date:any) => {
-    //     return Timestamp.fromDate(moment(date, "DD/MM/YYYY").toDate())  
-    // }
 
 
     // PAGE LOAD HANDLER
@@ -178,8 +164,8 @@ export default function DbComponent(props:Props){
         
         try {    
             setfetchingData(true)
-            const RecordCollection = collection(db, props.db)
-            const recordQuery = query(RecordCollection, orderBy("created_on"))
+            const RecordCollection = collection(db, "vehicles")
+            const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.db))
             const querySnapshot = await getDocs(recordQuery)
             const fetchedData:any = [];
 
@@ -207,11 +193,12 @@ export default function DbComponent(props:Props){
     const addItem = async () => {
         try {
             setLoading(true)
-            await addDoc(collection(db, props.db), 
+            await addDoc(collection(db, "vehicles"), 
             {
                 created_on:Timestamp.fromDate(new Date()), 
                 vehicleNumber:editedVehicleNumber, 
                 type:editedVehicleName, 
+                db:props.db,
                 vehicleOwner:editedVehicleOwner, 
                 chasisNumber:editedChasisNumber, 
                 modelNumber:editedModelNumber
@@ -263,30 +250,7 @@ export default function DbComponent(props:Props){
             setLoading(false)     
         }
     }
-
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
-    // FUNCTION TO SEND A TEST EMAIL
-    const TestMail = async () => {
-        
-        try {
-            setLoading(true)
-            await emailjs.send(serviceId, templateId, {
-              name: "User",
-              recipient: recipient,
-              message: testmessage
-            });
-            setLoading(false)
-            message.success("Email Successfully Sent")
-          } catch (error) {
-            console.log(error);
-            message.info("Invalid email address")
-            setLoading(false)
-          }
-          setMailConfigDialog(false)
-    }
-{/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
-
 
     const handleSelect = (id:any) => {
 
@@ -338,6 +302,9 @@ export default function DbComponent(props:Props){
         try {
             setLoading(true)
             await deleteDoc(doc(db, "databases", props.dbID))
+            records.forEach(async (e:any) => {
+                await deleteDoc(doc(db, "vehicles", e.id))
+            });
             setLoading(false)
             setDeleteDbDialog(false)
             usenavigate(-1)
@@ -436,13 +403,9 @@ export default function DbComponent(props:Props){
 
                 {/* <div style={{border:""}}>
                     <Tab/>
-                </div> */}
+                </div> */} 
 
-                {// if page doesn't load : 
-
-                
-
-
+                {
                 // IF NUMBER OF RECORDS IS LESS THAN 1
                 records.length<1?
 
@@ -458,8 +421,6 @@ export default function DbComponent(props:Props){
                         <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
                         <p style={{opacity:0.5, fontSize:"0.7rem"}}>Please check your internet connectivity</p>
                         </motion.div>
-
-
                     </div>
                 </motion.div>
                 :
@@ -468,19 +429,9 @@ export default function DbComponent(props:Props){
                 <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
                     <div style={{width:"100%",height:"75svh", display:"flex", justifyContent:"center", alignItems:"center", border:""}}>
 
-                        {/* <div style={{display:"flex", gap:"0.5rem", opacity:"0.5", border:""}}>
-                            <p style={{fontSize:"0.75rem"}} className="animate-ping">Fetching Data</p>
-                        </div> */}
-
                         <div style={{ border:"", display:"flex", alignItems:"center", justifyContent:"center"}}>
-                            
                             {props.loader}
-                            
-                            
                         </div>
-                        
-
-
                     </div>
                 </motion.div>
                 
@@ -493,12 +444,9 @@ export default function DbComponent(props:Props){
                         <div style={{display:"flex", gap:"0.25rem", opacity:"0.5"}}>
                             <PackageOpen width={"1rem"}/>
                             <p>No Data</p>
-                            
                         </div>
                 
                         <p style={{opacity:0.5, fontSize:"0.7rem"}}>Add a record using + Add Button</p>
-                        
-
 
                     </div>
                 </motion.div>
@@ -537,8 +485,8 @@ export default function DbComponent(props:Props){
                         return search == ""?
                         {}
                         :
-                        post.name&&
-                        ((post.name).toLowerCase()).includes(search.toLowerCase())
+                        post.type&&
+                        ((post.type).toLowerCase()).includes(search.toLowerCase())
                         
                     
                     })
@@ -546,6 +494,8 @@ export default function DbComponent(props:Props){
                         <motion.div key={post.id} initial={{opacity:0}} whileInView={{opacity:1}}>
 
                             <Directive 
+
+                                noArrow
                                 
                                 tag={props.db=="maintenance"?"OMR "+post.amount:post.vehicleNumber}
                                 
@@ -578,7 +528,6 @@ export default function DbComponent(props:Props){
                                         setDescription(post.description)
                                         setAmount(post.amount)
                                     }
-                                    
                                 }}                        
 
                             key={post.id} title={post.type} 
@@ -610,45 +559,11 @@ export default function DbComponent(props:Props){
 
                 <br/>
 
-                {/* <Pagination style={{cursor:"pointer"}}>
-                    <PaginationContent>
-
-                        <PaginationItem>
-                            <PaginationLink>
-                                <ChevronLeft width="1rem" height="1rem"/>
-                            </PaginationLink>
-                        </PaginationItem>
-
-                        <PaginationItem>
-                            <PaginationLink isActive>1</PaginationLink>
-                        </PaginationItem>
-
-                        <PaginationItem>
-                            <PaginationLink>2</PaginationLink>
-                        </PaginationItem>
-                        
-                        <PaginationItem>
-                            <PaginationLink><Ellipsis width="1rem" height="1rem"/></PaginationLink>
-                        </PaginationItem>
-
-                        <PaginationItem>
-                            <PaginationNext/>
-                        </PaginationItem>
-
-                    </PaginationContent>
-                </Pagination> */}
 
             </motion.div>
 
 
             {/* ADD RECORD BUTTON */}
-
-
-            {/* <AddRecordButton title={addButtonModeSwap?"Delete Record(s)":"Add Record"} 
-            onClickSwap={addButtonModeSwap} 
-            onClick={()=>{setAddDialog(true); setName("")}} alternateOnClick={()=>{checked.length<1?null:setBulkDeleteDialog(true)}}
-                icon={addButtonModeSwap?<Trash color="crimson" width="1rem"/>:<Plus color="dodgerblue" width="1rem"/>}/> */}
-
             <AddItemButton title={addButtonModeSwap?"Delete":"Add"} onClickSwap={addButtonModeSwap} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)} 
             alternateOnClick={
                 ()=>{checked.length<1?null:setBulkDeleteDialog(true)}
@@ -662,29 +577,6 @@ export default function DbComponent(props:Props){
             {/* Dialog Boxes 👇*/}
 
             <DefaultDialog open={deleteDbDialog} destructive onCancel={()=>setDeleteDbDialog(false)} title={"Delete Database?"} extra={<p style={{textAlign:"left", fontSize:"0.8rem", opacity:0.5, marginBottom:"", margin:"1rem", marginTop:"0"}}>This will irrecoverably delete all data within this database, please proceed with caution</p>} OkButtonText='Delete' onOk={deleteDatabase} updating={loading} disabled={loading}/>
-
-
-            {/* Upload Excel files Dialog */}
-            <DefaultDialog onCancel={()=>setExcelUploadDialog(false)} OkButtonText="Upload" open={excel_upload_dialog} title="Upload Excel Data" titleIcon={<CloudUpload/> } 
-                extra={
-                <>
-                <FileInput/>
-                </>
-            }/>
-
-
-            {/* Mail Configuration Dialog */}
-            <DefaultDialog disabled={loading||recipient?false:true} titleIcon={<MailCheck/>} title="Test Notifications" open={mailconfigdialog} onCancel={()=>setMailConfigDialog(false)} onOk={TestMail} updating={loading} OkButtonText="Send Test Mail" extra={
-                <div style={{display:"flex", border:"", width:"100%", flexFlow:"column", gap:"0.5rem"}}>
-                    <input placeholder="Enter E-Mail Address" onChange={(e)=>setRecipient(e.target.value)}/>
-                    <textarea onChange={(e:any)=>setTestMessage(e.target.value)} placeholder="Message..." rows={4}/>
-                {/* <Button variant={"ghost"} style={{flex:1}} onClick={()=>{setRecipientsDialog(true)}}>
-                    <Plus style={{width:"1rem"}} color="dodgerblue"/>
-                    Add Recipient
-                </Button> */}
-                </div>
-                
-                }/>
 
 
             {/* ADD ITEM DIALOG */}
@@ -715,8 +607,7 @@ export default function DbComponent(props:Props){
                     <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
                     
                 </div>
-            }
-                
+            } 
             />
 
             {/* ADD ITEM DIALOG */}
@@ -821,15 +712,8 @@ export default function DbComponent(props:Props){
                     </div>
                     </>
                 }
-
-                
-                
                 />
-
-
             </div>
-            
-    
         </>
     )
 }
