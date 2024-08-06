@@ -2,7 +2,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { ConfigProvider, DatePicker, message, theme } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -16,6 +16,7 @@ import Back from "./back"
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import SelectMenu from './select-menu'
+import ManualSelect from './manual-select'
 
 interface Props{
     title?:string
@@ -87,13 +88,14 @@ export default function DbComponent(props:Props){
 
     const [progress, setProgress] = useState("")
     const [progressItem, setProgressItem] = useState<any>()
-    
+    const [addItemDialog, setAddItemDialog] = useState(false)
 
     // MAILJS VARIABLES
     // const serviceId = "service_lunn2bp";
     // const templateId = "template_1y0oq9l";
 
     const [resetTags, setResetTags] = useState(false)
+    const [selectedDb, setSelectedDb] = useState("vehicles")
 
 
 {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
@@ -132,7 +134,7 @@ export default function DbComponent(props:Props){
     // PAGE LOAD HANDLER
     useEffect(() =>{
         fetchData()
-    },[])
+    },[selectedDb])
 
 
     // INTERNET STATUS CHECKER
@@ -164,7 +166,7 @@ export default function DbComponent(props:Props){
         
         try {    
             setfetchingData(true)
-            const RecordCollection = collection(db, "vehicles")
+            const RecordCollection = collection(db, selectedDb)
             const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.db))
             const querySnapshot = await getDocs(recordQuery)
             const fetchedData:any = [];
@@ -235,6 +237,7 @@ export default function DbComponent(props:Props){
             {
                 created_on:Timestamp.fromDate(new Date()), 
                 type:logType, 
+                db:props.db,
                 carName:carName, 
                 description:description, 
                 amount:amount
@@ -399,11 +402,18 @@ export default function DbComponent(props:Props){
                     </div>
                     }
                 />
-                <br/>
+                
+                
+                
+                <div style={{width:"13ch", marginBottom:"1rem", marginTop:"1rem"}}>
+                <ManualSelect db='vehicles' onChange={setSelectedDb} placeholder=''/>
+                </div>
 
                 {/* <div style={{border:""}}>
                     <Tab/>
                 </div> */} 
+
+
 
                 {
                 // IF NUMBER OF RECORDS IS LESS THAN 1
@@ -456,7 +466,9 @@ export default function DbComponent(props:Props){
 
 
                 //DISPLAY Page Beginning
-                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", marginTop:"1"}}>
+                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem", marginTop:""}}>
+
+                
 
                     {/* Searchbar */}
                     <div style={{display:"flex", gap:"0.75rem", border:"", flex:1}}>
@@ -473,9 +485,9 @@ export default function DbComponent(props:Props){
                 
                      
 
-                    <p style={{height:"0.25rem"}}/>
+                    
                 
-                <div className="record-list" style={{display:"flex", gap:"0.6rem", flexFlow:"column", overflowY:"auto", height:"72svh", paddingTop:"0.25rem", paddingRight:"0.5rem"}}>
+                <div className="record-list" style={{display:"flex", gap:"0.6rem", flexFlow:"column", overflowY:"auto", height:"69svh", paddingTop:"", paddingRight:"0.25rem", marginTop:"0.45rem", border:""}}>
                     
                 {
                     // RECORD DATA MAPPING
@@ -564,7 +576,9 @@ export default function DbComponent(props:Props){
 
 
             {/* ADD RECORD BUTTON */}
-            <AddItemButton title={addButtonModeSwap?"Delete":"Add"} onClickSwap={addButtonModeSwap} onClick={()=>props.type=="log"?setLogDialog(true):setAddDialog(true)} 
+            <AddItemButton title={addButtonModeSwap?"Delete":"Add"} onClickSwap={addButtonModeSwap} 
+            // onClick={()=>setAddDialog(true)} 
+            onClick={()=>{setAddItemDialog(true)}}
             alternateOnClick={
                 ()=>{checked.length<1?null:setBulkDeleteDialog(true)}
             }
@@ -575,6 +589,16 @@ export default function DbComponent(props:Props){
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
 
             {/* Dialog Boxes 👇*/}
+
+            <DefaultDialog close titleIcon={<Plus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
+            extra={
+                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                    <Directive icon={<User width={"1rem"} color='dodgerblue'/>} title='Add Owner'/>
+                    <Directive icon={<Car width={"1rem"} color='violet'/>} title='Add Vehicle'/>
+                    <Directive icon={<Wrench width={"1rem"} color='dodgerblue'/>} title='Add Maintenance'/>
+                </div>
+            }
+            />
 
             <DefaultDialog open={deleteDbDialog} destructive onCancel={()=>setDeleteDbDialog(false)} title={"Delete Database?"} extra={<p style={{textAlign:"left", fontSize:"0.8rem", opacity:0.5, marginBottom:"", margin:"1rem", marginTop:"0"}}>This will irrecoverably delete all data within this database, please proceed with caution</p>} OkButtonText='Delete' onOk={deleteDatabase} updating={loading} disabled={loading}/>
 
