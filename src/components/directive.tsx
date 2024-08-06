@@ -1,6 +1,8 @@
-import { BellOff, CheckSquare2, ChevronRight } from "lucide-react"
+import { BellOff, CheckSquare2, ChevronRight, EllipsisVerticalIcon, Inbox, LockKeyholeIcon } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
+import DropDown from "./dropdown"
+import { LoadingOutlined } from '@ant-design/icons'
 
 interface Props{
     title?:string
@@ -20,6 +22,11 @@ interface Props{
     extraOnEdit?:any
     notify?:boolean
     id_subtitle?:string
+    loading?:boolean
+    archived?:boolean
+    protected?:boolean
+    tagOnClick?:any
+    space?:boolean
 }
 
 export default function Directive(props:Props){
@@ -28,7 +35,7 @@ export default function Directive(props:Props){
 
     return(
 
-        <Link onClick={()=>props.selectable?setSelected(!selected):null} to={props.to} style={{display:"flex", width:"100%", textDecoration:"none"}}>
+        <Link onClick={()=>props.selectable?setSelected(!selected):null} to={props.to} style={{display:"flex", width:"100%", opacity:props.archived?0.5:1}}>
             {/* <div style={{background:"#1a1a1a",width:"3rem", borderTopLeftRadius:"0.5rem", borderBottomLeftRadius:"0.5rem", display:"flex", alignItems:"center", justifyContent:"center"}}>
                 {props.icon}
             </div> */}
@@ -41,7 +48,7 @@ export default function Directive(props:Props){
                     {
                         props.selectable?
                         <div style={{display:"flex", justifyContent:"center", alignItems:"center"}}>
-                        <CheckSquare2 className="check-square" fill={selected||props.selected?"dodgerblue":"rgba(100 100 100/ 50%)"} stroke={selected||props.selected?"white":"none"}/>
+                        <CheckSquare2 width={"1.75rem"} height={"1.75rem"} className="check-square" fill={selected||props.selected?"dodgerblue":"rgba(100 100 100/ 50%)"} stroke={selected||props.selected?"white":"none"}/>
                         {
                             selected?
                             // <Check style={{position:"relative", width:"0.75rem"}} />
@@ -58,11 +65,10 @@ export default function Directive(props:Props){
                     
 
                     <div style={{border:'', width:""}}>
-                    <p style={{fontWeight:400, textAlign:"left", border:"", width:"", fontSize:props.titleSize?props.titleSize:"0.9rem", textTransform:"capitalize"}}>
+                    <p style={{fontWeight:400, textAlign:"left", border:"", fontSize:props.titleSize?props.titleSize:"0.9rem", overflow:"hidden", whiteSpace:"nowrap", textOverflow:"ellipsis", display:"flex", flex:1, width:"", textTransform:"capitalize"}}>
                         {props.title}
                     </p>
-
-                    <p style={{fontSize:"0.65rem", textAlign:"left", color:"dodgerblue",opacity:"0.75", background:"", borderRadius:"0.5rem", paddingRight:"0.25rem", paddingLeft:"", fontWeight:600, textTransform:"uppercase"}}>{props.id_subtitle}</p>
+                    <p style={{fontSize:"0.7rem", fontWeight:"600", textAlign:"left", color:"lightblue",opacity:"0.75", background:"", borderRadius:"0.5rem", paddingRight:"0.25rem", paddingLeft:"", textTransform:"uppercase"}}>{props.id_subtitle}</p>
                     </div>
                     
 
@@ -84,27 +90,48 @@ export default function Directive(props:Props){
                 null
                 :
                         props.notify?
+                        props.archived?
+                        ""
+                        :
                         <BellOff width={"1rem"} color="grey"/>
                         :null
                     }
+
+                {
+                    props.protected&&
+                    <LockKeyholeIcon width={"1rem"} color="grey"/>
+                }
                     
                 {
                 
                 
                 props.tag?
-                
-                <p style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.8rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem", textTransform:"capitalize"}}>
-                    {props.tag}
-                    {/* <div style={{height:"0.5rem", width:"0.5rem", background:"dodgerblue", borderRadius:"50%"}}></div> */}
-                    </p>
+                    
+                    
+                        props.loading?
+                        <LoadingOutlined/>
+                        :
+                    <div onClick={props.tagOnClick} style={{background:"rgba(100 100 100/ 25%)",fontSize:"0.85rem", paddingLeft:"0.5rem", paddingRight:"0.5rem", borderRadius:"0.5rem", color:props.tag=="Expiring"?"violet":props.tag=="Available"?"lightgreen":props.status?"lightblue":"goldenrod", width:"", fontWeight:600, display:"flex", alignItems:"center", gap:"0.5rem"}}>
+                        
+                        {
+                        props.archived==true?
+                        <div style={{color:"white", display:'flex', alignItems:"center", gap:"0.5rem",}}>
+                        <Inbox width={"1rem"}/>
+                        <p>Archived</p>
+                        </div>
+                        :
+                        <p  style={{ textTransform:"capitalize"}}>{props.tag}</p>
+                        }
+                    </div>
                 :null
                 }
                 
                 {
                     props.selectable||props.noArrow?
-                    <div style={{width:"1rem"}}>
-                       
-                    </div>
+                    <div style={{width:props.space?"1rem":""}}></div>
+                    :
+                    props.extra?
+                    <DropDown className={"no-bg"} onDelete={props.extraOnDelete} onEdit={props.extraOnEdit} trigger={<EllipsisVerticalIcon width={"0.8rem"} height={"0.75rem"}/>} />
                     :
                     <ChevronRight width={"1rem"}/>
 

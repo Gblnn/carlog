@@ -17,6 +17,7 @@ import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import SelectMenu from './select-menu'
 import ManualSelect from './manual-select'
+import Owners from './Owners'
 
 interface Props{
     title?:string
@@ -96,6 +97,7 @@ export default function DbComponent(props:Props){
 
     const [resetTags, setResetTags] = useState(false)
     const [selectedDb, setSelectedDb] = useState("vehicles")
+    const [ownersDialog, setOwnersDialog] = useState(false)
 
 
 {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
@@ -233,7 +235,7 @@ export default function DbComponent(props:Props){
     const addLog = async () => {
         try {
             setLoading(true)
-            await addDoc(collection(db, props.db), 
+            await addDoc(collection(db, "maintenance"), 
             {
                 created_on:Timestamp.fromDate(new Date()), 
                 type:logType, 
@@ -308,6 +310,11 @@ export default function DbComponent(props:Props){
             records.forEach(async (e:any) => {
                 await deleteDoc(doc(db, "vehicles", e.id))
             });
+
+            records.forEach(async (e:any) => {
+                await deleteDoc(doc(db, "maintenance", e.id))
+            });
+
             setLoading(false)
             setDeleteDbDialog(false)
             usenavigate(-1)
@@ -404,10 +411,16 @@ export default function DbComponent(props:Props){
                 />
                 
                 
-                
-                <div style={{width:"13ch", marginBottom:"1rem", marginTop:"1rem"}}>
+                <div style={{display:"flex", border:'', justifyContent:"space-between", alignItems:"center", marginBottom:"1rem", marginTop:"1.25rem"}}>
+                <div style={{width:"13ch"}}>
                 <ManualSelect db='vehicles' onChange={setSelectedDb} placeholder=''/>
                 </div>
+
+                <button onClick={()=>setOwnersDialog(true)} style={{height:"2rem", borderRadius:"1.25rem", fontSize:"0.8rem", paddingLeft:"2.25rem", paddingRight:"2.25rem", display:"flex", alignItems:'center'}}>
+                    <User color='dodgerblue' width={"0.8rem"}/>
+                    Owners</button>
+                </div>
+                
 
                 {/* <div style={{border:""}}>
                     <Tab/>
@@ -437,7 +450,7 @@ export default function DbComponent(props:Props){
 
                 fetchingData?
                 <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
-                    <div style={{width:"100%",height:"75svh", display:"flex", justifyContent:"center", alignItems:"center", border:""}}>
+                    <div style={{width:"100%",height:"69svh", display:"flex", justifyContent:"center", alignItems:"center", border:""}}>
 
                         <div style={{ border:"", display:"flex", alignItems:"center", justifyContent:"center"}}>
                             {props.loader}
@@ -449,7 +462,7 @@ export default function DbComponent(props:Props){
 
                 // DISPLAY EMPTY SET - PAGE
                 <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
-                    <div style={{width:"100%",height:"75svh", display:"flex", justifyContent:"center", alignItems:"center", border:"", flexFlow:"column"}}>
+                    <div style={{width:"100%",height:"69svh", display:"flex", justifyContent:"center", alignItems:"center", border:"", flexFlow:"column"}}>
 
                         <div style={{display:"flex", gap:"0.25rem", opacity:"0.5"}}>
                             <PackageOpen width={"1rem"}/>
@@ -507,9 +520,9 @@ export default function DbComponent(props:Props){
 
                             <Directive 
 
-                                noArrow
                                 
-                                tag={props.db=="maintenance"?"OMR "+post.amount:post.vehicleNumber}
+                                
+                                tag={selectedDb=="maintenance"?"OMR "+post.amount:post.vehicleNumber}
                                 
                                 selected={selected}
 
@@ -517,7 +530,7 @@ export default function DbComponent(props:Props){
 
                                 status
 
-                                id_subtitle={props.db=="maintenance"?post.carName:post.modelNumber}
+                                id_subtitle={selectedDb=="maintenance"?post.carName:post.modelNumber}
                             
                                 // ON CLICK
                                 onSelect={()=>{
@@ -526,14 +539,16 @@ export default function DbComponent(props:Props){
                                 onClick={()=>{
                                     setID(post.id);
                                     
+                                    if(selectedDb=="vehicles"){
                                     setItemDialog(true)
                                     setVehicleNumber(post.vehicleNumber)
                                     setVehicleName(post.type)
                                     setVehicleOwner(post.vehicleOwner)
                                     setChasisNumber(post.chasisNumber)
                                     setModelNumber(post.modelNumber)
+                                    }
                                     
-                                    if(props.db=="maintenance"){
+                                    if(selectedDb=="maintenance"){
                                         setLogDisplayDialog(true)
                                         setLogType(post.type)
                                         setCarName(post.carName)
@@ -590,12 +605,14 @@ export default function DbComponent(props:Props){
 
             {/* Dialog Boxes 👇*/}
 
+            <Owners open={ownersDialog} onCancel={()=>setOwnersDialog(false)}/>
+
             <DefaultDialog close titleIcon={<Plus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
                     <Directive icon={<User width={"1rem"} color='dodgerblue'/>} title='Add Owner'/>
-                    <Directive icon={<Car width={"1rem"} color='violet'/>} title='Add Vehicle'/>
-                    <Directive icon={<Wrench width={"1rem"} color='dodgerblue'/>} title='Add Maintenance'/>
+                    <Directive onClick={()=>setAddDialog(true)} icon={<Car width={"1rem"} color='violet'/>} title='Add Vehicle'/>
+                    <Directive onClick={()=>{setLogDialog(true)}} icon={<Wrench width={"1rem"} color='dodgerblue'/>} title='Add Maintenance'/>
                 </div>
             }
             />
@@ -629,7 +646,7 @@ export default function DbComponent(props:Props){
                     <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
                     <Directive icon={<CalendarDaysIcon width={"1.1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
                     <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
-                    
+                    <Directive title='Maintenance Summary' icon={<Wrench color='dodgerblue' width={"1rem"}/>}/>
                 </div>
             } 
             />
@@ -675,7 +692,7 @@ export default function DbComponent(props:Props){
 
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                    <SelectMenu db='vehicles' onChange={setCarName}/>
+                    <SelectMenu placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                     <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>

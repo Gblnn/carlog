@@ -1,11 +1,13 @@
+import { User } from "lucide-react";
 import DefaultDialog from "./default-dialog";
 
 interface Props{
     open?:boolean
+    onCancel?:any
 }
 
 export default function Owners(props:Props){
     return(
-        <DefaultDialog title={"Add Item"} open={props.open}/>
+        <DefaultDialog close title={"Owners"} titleIcon={<User color="dodgerblue"/>} open={props.open} onCancel={props.onCancel}/>
     )
 }

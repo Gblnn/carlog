@@ -1,7 +1,7 @@
 import { db } from "@/firebase";
 import { LoadingOutlined } from '@ant-design/icons';
 import { message } from "antd";
-import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
@@ -9,6 +9,7 @@ interface Props{
     db:string
     onChange?:any
     placeholder?:string
+    selectedDb?:any
 }
 
 export default function SelectMenu(props:Props){
@@ -26,7 +27,7 @@ export default function SelectMenu(props:Props){
         try {    
             setfetchingData(true)
             const RecordCollection = collection(db, props.db)
-            const recordQuery = query(RecordCollection, orderBy("created_on"))
+            const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.selectedDb))
             const querySnapshot = await getDocs(recordQuery)
             const fetchedData:any = [];
 
