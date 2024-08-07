@@ -25,6 +25,10 @@ button {
   cursor: pointer;
 }
 
+.no-bg {
+  background: none;
+}
+
 .desktop-only {
   display: none;
 }

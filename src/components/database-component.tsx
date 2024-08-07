@@ -1,5 +1,5 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { ConfigProvider, DatePicker, DatePickerProps, message, theme } from 'antd'
+import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
 import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
@@ -13,6 +13,7 @@ import { db } from "../firebase"
 import AddItemButton from './add-item-button'
 import AddItemDialog from './add-item-dialog'
 import Back from "./back"
+import DateSelect from './date-select'
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import ManualSelect from './manual-select'
@@ -354,10 +355,10 @@ export default function DbComponent(props:Props){
         }
     }
 
-    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-        console.log(date, dateString);
-        setLogDate(String(dateString))
-      };
+    // const onChange: DatePickerProps['onChange'] = (date, dateString) => {
+    //     console.log(date, dateString);
+    //     setLogDate(String(dateString))
+    //   };
 
 
     return(
@@ -781,9 +782,10 @@ export default function DbComponent(props:Props){
                     <SelectMenu placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
-                    <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
+                    {/* <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
                     <DatePicker placement='topLeft' size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
-                    </ConfigProvider>
+                    </ConfigProvider> */}
+                    <DateSelect/>
                     
                 </div>
                 
