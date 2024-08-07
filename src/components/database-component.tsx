@@ -782,7 +782,7 @@ export default function DbComponent(props:Props){
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                     <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
-                    <DatePicker size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
+                    <DatePicker placement='topLeft' size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
                     </ConfigProvider>
                     
                 </div>
