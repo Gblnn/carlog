@@ -798,7 +798,7 @@ export default function DbComponent(props:Props){
             }
             />
 
-            <DefaultDialog open={deleteDbDialog} destructive onCancel={()=>setDeleteDbDialog(false)} title={"Delete Database?"} extra={<p style={{textAlign:"left", fontSize:"0.8rem", opacity:0.5, marginBottom:"", margin:"1rem", marginTop:"0"}}>This will irrecoverably delete all data within this database, please proceed with caution</p>} OkButtonText='Delete' onOk={deleteDatabase} updating={loading} disabled={loading}/>
+            <DefaultDialog open={deleteDbDialog} destructive onCancel={()=>setDeleteDbDialog(false)} title={"Delete Database?"} extra={<p style={{textAlign:"left", fontSize:"0.8rem", opacity:0.5, marginBottom:"0", margin:"1rem", marginTop:"0", border:''}}>This will irrecoverably delete all data within this database, please proceed with caution</p>} OkButtonText='Delete' onOk={deleteDatabase} updating={loading} disabled={loading}/>
 
 
             {/* ADD ITEM DIALOG */}
