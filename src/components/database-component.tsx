@@ -1,8 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { ConfigProvider, DatePicker, message, theme } from 'antd'
+import { ConfigProvider, DatePicker, DatePickerProps, message, theme } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, FilePlus, FileSpreadsheet, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -15,9 +15,9 @@ import AddItemDialog from './add-item-dialog'
 import Back from "./back"
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
-import SelectMenu from './select-menu'
 import ManualSelect from './manual-select'
 import Owners from './Owners'
+import SelectMenu from './select-menu'
 
 interface Props{
     title?:string
@@ -38,10 +38,13 @@ export default function DbComponent(props:Props){
     
     // BASIC PAGE VARIABLES
     const [records, setRecords] = useState<any>([])
+    const [maintenance, setMaintenance] = useState<any>([])
     const [id, setID] = useState("")
     const [loading, setLoading] = useState(false)
     const [addButtonModeSwap, setAddButtonModeSwap] = useState(false)
     const [deleteDbDialog, setDeleteDbDialog] = useState(false)
+    const [maintenanceDialog, setMaintenanceDialog] = useState(false)
+    const [logDate, setLogDate] = useState("")
 
     const [vehicleNumber, setVehicleNumber] = useState("")
     const [vehicleName, setVehicleName] = useState("")
@@ -135,6 +138,7 @@ export default function DbComponent(props:Props){
 
     // PAGE LOAD HANDLER
     useEffect(() =>{
+        setRecords([])
         fetchData()
     },[selectedDb])
 
@@ -193,6 +197,29 @@ export default function DbComponent(props:Props){
         }   
     }
 
+    const fetchMaintenance = async () => {
+        try {
+            setLoading(true)
+            setMaintenance([])
+            const RecordCollection = collection(db, "maintenance")
+            const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.db), where("carName","==",vehicleName))
+            const querySnapshot = await getDocs(recordQuery)
+            const fetchedData:any = [];
+
+            querySnapshot.forEach((doc:any)=>{
+                fetchedData.push({id: doc.id, ...doc.data()})    
+            })
+
+        
+            setMaintenance(fetchedData)
+            setLoading(false)
+        } catch (error) {
+            setLoading(false)
+            message.error(String(error))
+            console.log(error)
+        }
+    }
+
 
     const addItem = async () => {
         try {
@@ -216,6 +243,7 @@ export default function DbComponent(props:Props){
             setModelNumber(editedModelNumber)
             fetchData()
             setAddDialog(false)
+            setAddItemDialog(false)
             
         } catch (error) {
             message.error(String(error))
@@ -240,9 +268,11 @@ export default function DbComponent(props:Props){
                 created_on:Timestamp.fromDate(new Date()), 
                 type:logType, 
                 db:props.db,
-                carName:carName, 
+                carName:carName,
+                carNumber:"",
                 description:description, 
-                amount:amount
+                amount:amount,
+                date:logDate
             })
 
             setLoading(false)
@@ -323,6 +353,11 @@ export default function DbComponent(props:Props){
             
         }
     }
+
+    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
+        console.log(date, dateString);
+        setLogDate(String(dateString))
+      };
 
 
     return(
@@ -442,7 +477,9 @@ export default function DbComponent(props:Props){
                             
                         </div>
                         <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
-                        <p style={{opacity:0.5, fontSize:"0.7rem"}}>Please check your internet connectivity</p>
+                        <p style={{opacity:0.5, fontSize:"0.7rem"}}>
+                            Please check your internet connectivity
+                        </p>
                         </motion.div>
                     </div>
                 </motion.div>
@@ -554,6 +591,7 @@ export default function DbComponent(props:Props){
                                         setCarName(post.carName)
                                         setDescription(post.description)
                                         setAmount(post.amount)
+                                        setLogDate(post.date)
                                     }
                                 }}                        
 
@@ -607,6 +645,48 @@ export default function DbComponent(props:Props){
 
             <Owners open={ownersDialog} onCancel={()=>setOwnersDialog(false)}/>
 
+            <DefaultDialog close titleIcon={<Wrench color='dodgerblue'/>} title={"Maintenance"} open={maintenanceDialog} onCancel={()=>setMaintenanceDialog(false)}
+            title_extra={
+                <button onClick={fetchMaintenance} style={{width:"2.75rem", height:"2.5rem"}}>
+                    {
+                        loading?
+                        <LoadingOutlined/>
+                        :
+                        <RefreshCcw width={"1rem"} color='dodgerblue'/>
+                    }
+                    
+                </button>
+            }
+            extra={
+                maintenance.length==0?
+                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"2.5rem",borderRadius:"0.5rem", marginBottom:""}}></div>
+                    :
+                    <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:""}}>
+                    {
+                        maintenance.map((e:any)=>(
+                            <Directive key={e.id} title={e.type} tag={e.amount} status
+                            icon={
+                                e.type=="fuel"?
+                                <Fuel width={"1.1rem"} color='goldenrod'/>
+                                :
+                                e.type=="service"?
+                                <Wrench width={"1.1rem"} color='dodgerblue'/>
+                                :
+                                e.type=="parts"?
+                                <Cog width={"1.1rem"} color='violet'/>
+                                :
+                                e.type=="other"&&
+                                <Globe width={"1.1rem"} color='grey'/>
+                            }
+                            />
+                        ))
+                    }
+                    </div>
+                    
+                
+            }
+                />
+
             <DefaultDialog close titleIcon={<Plus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
@@ -630,6 +710,7 @@ export default function DbComponent(props:Props){
             ChasisNumberOnChange={(e:any)=>setEditedChasisNumber(e.target.value)}
             ModelNumberOnChange={(e:any)=>setEditedModelNumber(e.target.value)}
             onOK={addItem}
+            
             />
 
             {/* ITEM DISPLAY DIALOG */}
@@ -643,10 +724,15 @@ export default function DbComponent(props:Props){
             
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+
                     <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
                     <Directive icon={<CalendarDaysIcon width={"1.1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
                     <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
-                    <Directive title='Maintenance Summary' icon={<Wrench color='dodgerblue' width={"1rem"}/>}/>
+
+                    <div style={{paddingTop:"0.75rem", borderTop:"1px solid rgba(100 100 100/ 50%)", marginTop:"0.5rem"}}>
+                    <Directive onClick={()=>{setMaintenanceDialog(true);fetchMaintenance()}} title='Maintenance' icon={<Wrench color='dodgerblue' width={"1rem"}/>}/>
+                    </div>
+                    
                 </div>
             } 
             />
@@ -696,7 +782,7 @@ export default function DbComponent(props:Props){
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                     <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
-                    <DatePicker format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1.1rem", background:"none"}}/>
+                    <DatePicker size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
                     </ConfigProvider>
                     
                 </div>
@@ -741,15 +827,17 @@ export default function DbComponent(props:Props){
                 extra={
                     <>
                     
-                    <div style={{display:"flex", gap:"0.5rem", paddingLeft:"1rem", fontSize:"4rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem"}}>
+                    <div style={{display:"flex", gap:"0.25rem", paddingLeft:"1rem", fontSize:"4rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem", flexFlow:"column", marginBottom:"1rem"}}>
                         
-                        <p>{amount}</p>
-                        <p style={{fontSize:"1rem", opacity:0.5}}>OMR</p>
+                        <p style={{fontSize:"1rem", opacity:0.5, border:"", height:"1.5rem"}}>OMR</p>
+                        <p style={{border:'', height:"3.5rem", display:"flex", alignItems:"center"}}>{amount}</p>
+                        
                         
                     </div>
                     <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                        <Directive icon={<CarFront/>} title={carName}/>
-                        <Directive icon={<FileSpreadsheet/>} title={"Description"} tag={description?description:"No Description"} status/>
+                        <Directive icon={<CarFront color='violet' width={"1.1rem"}/>} title={carName}/>
+                        <Directive icon={<File color='lightgreen' width={"1.1rem"}/>} title={description?description:"No Description"}  status/>
+                        <Directive icon={<CalendarDaysIcon color='dodgerblue' width={"1.1rem"}/>} title={"Date"} tag={logDate} status/>
                     </div>
                     </>
                 }
