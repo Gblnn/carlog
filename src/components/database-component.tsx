@@ -606,7 +606,7 @@ export default function DbComponent(props:Props){
 
                             <Directive 
 
-                                
+                                space
                                 
                                 tag={selectedDb=="maintenance"?post.amount:post.vehicleNumber}
                                 
