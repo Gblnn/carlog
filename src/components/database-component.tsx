@@ -2,7 +2,7 @@ import { LoadingOutlined } from '@ant-design/icons'
 import { message } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, Cog, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, UserCircle, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -17,7 +17,6 @@ import DateSelect from './date-select'
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import ManualSelect from './manual-select'
-import Owners from './Owners'
 import SelectMenu from './select-menu'
 
 interface Props{
@@ -40,6 +39,7 @@ export default function DbComponent(props:Props){
     // BASIC PAGE VARIABLES
     const [records, setRecords] = useState<any>([])
     const [maintenance, setMaintenance] = useState<any>([])
+    const [owners, setOwners] = useState<any>([])
     const [id, setID] = useState("")
     const [loading, setLoading] = useState(false)
     const [addButtonModeSwap, setAddButtonModeSwap] = useState(false)
@@ -102,6 +102,8 @@ export default function DbComponent(props:Props){
     const [resetTags, setResetTags] = useState(false)
     const [selectedDb, setSelectedDb] = useState("vehicles")
     const [ownersDialog, setOwnersDialog] = useState(false)
+
+    const [editedOwnerName, setEditedOwnerName] = useState("")
 
 
 {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
@@ -222,6 +224,30 @@ export default function DbComponent(props:Props){
     }
 
 
+    const fetchOwners = async () => {
+        try {
+            setfetchingData(true)
+            setOwners([])
+            const RecordCollection = collection(db, "owners")
+            const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.db))
+            const querySnapshot = await getDocs(recordQuery)
+            const fetchedData:any = [];
+
+            querySnapshot.forEach((doc:any)=>{
+                fetchedData.push({id: doc.id, ...doc.data()})    
+            })
+
+        
+            setOwners(fetchedData)
+            setfetchingData(false)
+        } catch (error) {
+            setfetchingData(false)
+            message.error(String(error))
+            console.log(error)
+        }
+    }
+
+
     const addItem = async () => {
         try {
             setLoading(true)
@@ -254,7 +280,8 @@ export default function DbComponent(props:Props){
 
     const deleteItem = async () => {
         setLoading(true)
-        await deleteDoc(doc(db, props.db, id))
+        await deleteDoc(doc(db, selectedDb, id))
+        fetchData()
         setLoading(false)
         setDeleteDialog(false)
         setDeleteDialog(false)
@@ -284,6 +311,22 @@ export default function DbComponent(props:Props){
         } catch (error) {
             message.error(String(error))
             setLoading(false)     
+        }
+    }
+
+    const addOwner = async () => {
+        try {
+            setLoading(true)
+            await addDoc(collection(db, "owners"),{
+                created_on:Timestamp.fromDate(new Date()),
+                db:props.db,
+                type:editedOwnerName
+            })
+        
+            fetchOwners()
+            setLoading(false)
+        } catch (error) {
+            setLoading(false)
         }
     }
 {/* ////////////////////////////////////////////////////////////////////////////////////////////////////////////// */}
@@ -452,9 +495,14 @@ export default function DbComponent(props:Props){
                 <ManualSelect db='vehicles' onChange={setSelectedDb} placeholder=''/>
                 </div>
 
-                <button onClick={()=>setOwnersDialog(true)} style={{height:"2rem", borderRadius:"1.25rem", fontSize:"0.8rem", paddingLeft:"2.25rem", paddingRight:"2.25rem", display:"flex", alignItems:'center'}}>
+                <button onClick={()=>{setOwnersDialog(true);fetchOwners()}} style={{height:"2rem", borderRadius:"1.25rem", fontSize:"0.8rem", paddingLeft:"1rem", paddingRight:"", display:"flex", alignItems:'center', width:"8.5rem", justifyContent:"space-between", border:""}}>
+                    <div style={{display:"flex", alignItems:"center", gap:"0.5rem"}}>
                     <User color='dodgerblue' width={"0.8rem"}/>
-                    Owners</button>
+                    Owners
+                    </div>
+                    <ChevronRight style={{width:"0.8rem"}}/>
+                    </button>
+                    
                 </div>
                 
 
@@ -560,7 +608,7 @@ export default function DbComponent(props:Props){
 
                                 
                                 
-                                tag={selectedDb=="maintenance"?"OMR "+post.amount:post.vehicleNumber}
+                                tag={selectedDb=="maintenance"?post.amount:post.vehicleNumber}
                                 
                                 selected={selected}
 
@@ -568,7 +616,7 @@ export default function DbComponent(props:Props){
 
                                 status
 
-                                id_subtitle={selectedDb=="maintenance"?post.carName:post.modelNumber}
+                                id_subtitle={selectedDb=="maintenance"?post.carName:""}
                             
                                 // ON CLICK
                                 onSelect={()=>{
@@ -576,7 +624,6 @@ export default function DbComponent(props:Props){
                                 }}
                                 onClick={()=>{
                                     setID(post.id);
-                                    
                                     if(selectedDb=="vehicles"){
                                     setItemDialog(true)
                                     setVehicleNumber(post.vehicleNumber)
@@ -644,7 +691,7 @@ export default function DbComponent(props:Props){
 
             {/* Dialog Boxes 👇*/}
 
-            <Owners open={ownersDialog} onCancel={()=>setOwnersDialog(false)}/>
+            
 
             <DefaultDialog close titleIcon={<Wrench color='dodgerblue'/>} title={"Maintenance"} open={maintenanceDialog} onCancel={()=>setMaintenanceDialog(false)}
             title_extra={
@@ -688,10 +735,63 @@ export default function DbComponent(props:Props){
             }
                 />
 
+
+
+            <DefaultDialog close titleIcon={<UserCircle color='dodgerblue'/>} title={"Owners"} open={ownersDialog} onCancel={()=>setOwnersDialog(false)}
+            code={props.db}
+            codeIcon={<Database width={"0.8rem"} color='dodgerblue'/>}
+            title_extra={
+                <button onClick={fetchOwners} style={{width:"2.75rem", height:"2.5rem"}}>
+                    {
+                        fetchingData?
+                        <LoadingOutlined/>
+                        :
+                        <RefreshCcw width={"1rem"} color='dodgerblue'/>
+                    }
+                    
+                </button>
+            }
+            extra={
+                <>
+                {
+                owners.length==0?
+                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"2.5rem",borderRadius:"0.5rem", marginBottom:""}}></div>
+                    :
+                    <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:""}}>
+                    {
+                        owners.map((e:any)=>(
+                            <Directive key={e.id} title={e.type} status
+                            icon={
+                                <User color='dodgerblue' width={"1rem"}/>
+                            }
+                            />
+                        ))
+                    }
+                    </div>
+            }
+            <div style={{display:"flex", gap:"0.5rem", borderTop:"1px solid rgba(100 100 100/ 50%)", marginTop:"1rem", paddingTop:"0.75rem"}}>
+                <input placeholder='Owner Name' onChange={(e:any)=>setEditedOwnerName(e.target.value)}/>
+                <button onClick={addOwner} style={{width:"6rem"}}>
+                    {
+                        loading?
+                        <LoadingOutlined/>
+                        :
+                        "Add"
+                    }
+                    
+                </button>
+            </div>
+                </>
+                
+                    
+                
+            }
+                />
+
             <DefaultDialog close titleIcon={<Plus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                    <Directive icon={<User width={"1rem"} color='dodgerblue'/>} title='Add Owner'/>
+                    
                     <Directive onClick={()=>setAddDialog(true)} icon={<Car width={"1rem"} color='violet'/>} title='Add Vehicle'/>
                     <Directive onClick={()=>{setLogDialog(true)}} icon={<Wrench width={"1rem"} color='dodgerblue'/>} title='Add Maintenance'/>
                 </div>
@@ -702,7 +802,7 @@ export default function DbComponent(props:Props){
 
 
             {/* ADD ITEM DIALOG */}
-            <AddItemDialog open={addDialog} title='Add Vehicle' titleIcon={<Car/>} onCancel={()=>setAddDialog(false)} 
+            <AddItemDialog 
             updating={loading}
             disabled={loading}
             VehicleNumberOnChange={(e:any)=>setEditedVehicleNumber(e.target.value)}
@@ -712,6 +812,19 @@ export default function DbComponent(props:Props){
             ModelNumberOnChange={(e:any)=>setEditedModelNumber(e.target.value)}
             onOK={addItem}
             
+            />
+
+            <DefaultDialog open={addDialog} title={"Add Vehicle"} titleIcon={<Car/>} onCancel={()=>setAddDialog(false)}
+            OkButtonText='Add'
+            extra={
+                <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                    <input placeholder='Vehicle Number'/>
+                    <input placeholder='Vehicle Name'/>
+                    <input placeholder='Chasis Number'/>
+                    <input placeholder='Model Number'/>
+                    <SelectMenu placeholder='Select Owner' db='owners' selectedDb={props.db} onChange={setVehicleOwner}/>
+                </div>
+            }
             />
 
             {/* ITEM DISPLAY DIALOG */}
@@ -739,7 +852,7 @@ export default function DbComponent(props:Props){
             />
 
             {/* ADD ITEM DIALOG */}
-            <DefaultDialog created_on={logType} open={logDialog} onCancel={()=>{setLogDialog(false);setLogType("");setResetTags(!resetTags)}} title={"Add Log"} titleIcon={<FilePlus/>}
+            <DefaultDialog code={props.db} codeIcon={<Database width={"0.8rem"} color='violet'/>} created_on={logType} open={logDialog} onCancel={()=>{setLogDialog(false);setLogType("");setResetTags(!resetTags)}} title={"Add Log"} titleIcon={<FilePlus/>}
             updating={loading}
             disabled={loading}
             onOk={addLog}
@@ -780,8 +893,9 @@ export default function DbComponent(props:Props){
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
                     <SelectMenu placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
-                    <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
+                    
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
+                    <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
                     {/* <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
                     <DatePicker placement='topLeft' size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
                     </ConfigProvider> */}
@@ -804,7 +918,7 @@ export default function DbComponent(props:Props){
             />
 
 
-            <DefaultDialog close title={logType} open={logDisplayDialog} onCancel={()=>setLogDisplayDialog(false)}
+            <DefaultDialog code={props.db} codeIcon={<Database width={"0.8rem"} color='dodgerblue'/>} close title={logType} open={logDisplayDialog} onCancel={()=>setLogDisplayDialog(false)}
                 titleIcon={
                     logType=="fuel"?
                     <Fuel color='goldenrod'/>
@@ -837,8 +951,8 @@ export default function DbComponent(props:Props){
                         
                     </div>
                     <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
-                        <Directive icon={<CarFront color='violet' width={"1.1rem"}/>} title={carName}/>
-                        <Directive icon={<File color='lightgreen' width={"1.1rem"}/>} title={description?description:"No Description"}  status/>
+                        <Directive icon={<CarFront color='dodgerblue' width={"1.1rem"}/>} title={carName}/>
+                        <Directive icon={<File color='dodgerblue' width={"1.1rem"}/>} title={description?description:"No Description"}  status/>
                         <Directive icon={<CalendarDaysIcon color='dodgerblue' width={"1.1rem"}/>} title={"Date"} tag={logDate} status/>
                     </div>
                     </>

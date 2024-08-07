@@ -3,6 +3,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import DropDown from "./dropdown"
 import { LoadingOutlined } from '@ant-design/icons'
+import { motion } from 'framer-motion'
 
 interface Props{
     title?:string
@@ -34,6 +35,7 @@ export default function Directive(props:Props){
     const [selected, setSelected] = useState(false)
 
     return(
+        <motion.div initial={{opacity:0}} whileInView={{opacity:1}}>
 
         <Link onClick={()=>props.selectable?setSelected(!selected):null} to={props.to} style={{display:"flex", width:"100%", opacity:props.archived?0.5:1}}>
             {/* <div style={{background:"#1a1a1a",width:"3rem", borderTopLeftRadius:"0.5rem", borderBottomLeftRadius:"0.5rem", display:"flex", alignItems:"center", justifyContent:"center"}}>
@@ -142,6 +144,7 @@ export default function Directive(props:Props){
             
         </button>
         </Link>
+        </motion.div>
         
     )
 }
