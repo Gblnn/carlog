@@ -1,8 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons'
-import { message } from 'antd'
+import { ConfigProvider, DatePicker, DatePickerProps, message, theme } from 'antd'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, User, UserCircle, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, UserCircle, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -13,7 +13,6 @@ import { db } from "../firebase"
 import AddItemButton from './add-item-button'
 import AddItemDialog from './add-item-dialog'
 import Back from "./back"
-import DateSelect from './date-select'
 import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import ManualSelect from './manual-select'
@@ -104,6 +103,9 @@ export default function DbComponent(props:Props){
     const [ownersDialog, setOwnersDialog] = useState(false)
 
     const [editedOwnerName, setEditedOwnerName] = useState("")
+    const [ownerSummary, setOwnerSummary] = useState(false)
+    const [ownerID, setOwnerID] = useState("")
+    const [ownerName, setOwnerName] = useState("")
 
 
 {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
@@ -284,6 +286,7 @@ export default function DbComponent(props:Props){
         fetchData()
         setLoading(false)
         setDeleteDialog(false)
+        setLogDialog(false)
         setDeleteDialog(false)
         setItemDialog(false)
     }
@@ -325,6 +328,7 @@ export default function DbComponent(props:Props){
         
             fetchOwners()
             setLoading(false)
+            setEditedOwnerName("")
         } catch (error) {
             setLoading(false)
         }
@@ -398,10 +402,23 @@ export default function DbComponent(props:Props){
         }
     }
 
-    // const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-    //     console.log(date, dateString);
-    //     setLogDate(String(dateString))
-    //   };
+    const onChange: DatePickerProps['onChange'] = (date, dateString) => {
+        console.log(date, dateString);
+        setLogDate(String(dateString))
+      };
+
+    const deleteOwner = async () => {
+        try {
+            setLoading(true)
+            await deleteDoc(doc(db, "owners", ownerID))
+            setLoading(false)
+            setOwnerSummary(false)
+            fetchOwners()
+        } 
+        catch (error) {
+            setLoading(false)
+        }
+    }
 
 
     return(
@@ -440,15 +457,11 @@ export default function DbComponent(props:Props){
                     !selectable?
                     <div style={{display:"flex", gap:"0.5rem", height:"2.75rem"}}>
                         
-
-                        
                         <button className="transitions blue-glass" style={{paddingLeft:"1rem", paddingRight:"1rem", width:"3rem"}} onClick={()=>{fetchData("refresh")}} >
-
                             {
                                 fetchingData?
                             
                                 <LoadingOutlined style={{color:"dodgerblue"}}/>
-                                
                                 
                                 :
                                 <RefreshCcw width={"1.25rem"} height={"1.25rem"} color="dodgerblue"/>
@@ -691,7 +704,7 @@ export default function DbComponent(props:Props){
 
             {/* Dialog Boxes 👇*/}
 
-            
+            <DefaultDialog open={ownerSummary} onCancel={()=>setOwnerSummary(false)} title={ownerName} OkButtonText='Remove' destructive code={ownerID} onOk={deleteOwner} updating={loading} disabled={loading}/>
 
             <DefaultDialog close titleIcon={<Wrench color='dodgerblue'/>} title={"Maintenance"} open={maintenanceDialog} onCancel={()=>setMaintenanceDialog(false)}
             title_extra={
@@ -707,12 +720,12 @@ export default function DbComponent(props:Props){
             }
             extra={
                 maintenance.length==0?
-                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"2.5rem",borderRadius:"0.5rem", marginBottom:""}}></div>
+                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"3.35rem",borderRadius:"0.5rem", marginBottom:""}}></div>
                     :
                     <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:""}}>
                     {
                         maintenance.map((e:any)=>(
-                            <Directive key={e.id} title={e.type} tag={e.amount} status
+                            <Directive id_subtitle={e.date} key={e.id} title={e.type} tag={e.amount} status
                             icon={
                                 e.type=="fuel"?
                                 <Fuel width={"1.1rem"} color='goldenrod'/>
@@ -760,7 +773,7 @@ export default function DbComponent(props:Props){
                     <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:""}}>
                     {
                         owners.map((e:any)=>(
-                            <Directive key={e.id} title={e.type} status
+                            <Directive onClick={()=>{setOwnerID(e.id);setOwnerSummary(true);setOwnerName(e.type)}} key={e.id} title={e.type} status
                             icon={
                                 <User color='dodgerblue' width={"1rem"}/>
                             }
@@ -770,7 +783,7 @@ export default function DbComponent(props:Props){
                     </div>
             }
             <div style={{display:"flex", gap:"0.5rem", borderTop:"1px solid rgba(100 100 100/ 50%)", marginTop:"1rem", paddingTop:"0.75rem"}}>
-                <input placeholder='Owner Name' onChange={(e:any)=>setEditedOwnerName(e.target.value)}/>
+                <input value={editedOwnerName} placeholder='Owner Name' onChange={(e:any)=>setEditedOwnerName(e.target.value)}/>
                 <button onClick={addOwner} style={{width:"6rem"}}>
                     {
                         loading?
@@ -788,7 +801,7 @@ export default function DbComponent(props:Props){
             }
                 />
 
-            <DefaultDialog close titleIcon={<Plus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
+            <DefaultDialog close titleIcon={<FilePlus/>} open={addItemDialog} title={"Add Item"} onCancel={()=>setAddItemDialog(false)}
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
                     
@@ -892,14 +905,15 @@ export default function DbComponent(props:Props){
 
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
+                    
                     <SelectMenu placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
                     
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
-                    {/* <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
+                    <ConfigProvider theme={{algorithm: theme.darkAlgorithm}}>
                     <DatePicker placement='topLeft' size='large' variant='outlined' onChange={onChange} format={"DD/MM/YYYY"} style={{height:"2.5rem", fontSize:"1rem", background:"none"}}/>
-                    </ConfigProvider> */}
-                    <DateSelect/>
+                    </ConfigProvider>
+                    {/* <DateSelect onChange={(e:any)=>console.log(e.target.value)}/> */}
                     
                 </div>
                 
