@@ -1,52 +1,86 @@
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { auth } from "@/firebase";
+import { LoadingOutlined } from '@ant-design/icons';
 import { message } from "antd";
-import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { ChevronRight, KeyRound, CarFront } from "lucide-react";
+import { browserSessionPersistence, setPersistence, signInWithEmailAndPassword } from "firebase/auth";
+import { ChevronRight, KeyRound } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+
  
 export default function Login(){
 
     const usenavigate = useNavigate()
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [loading, setLoading] = useState(false)
 
-    const SignUpWithGoogle = async () => {
+    
+    
+    setPersistence(auth, browserSessionPersistence)
 
+    useEffect(()=>{
+        window.name&&
+        usenavigate("/index")
+    },[])
+
+
+
+    const handleLoginIn = async () => {
         try {
-            const provider = new GoogleAuthProvider();
-    
-        const result=await signInWithPopup(auth, provider)
-         
-           
-            const credential = GoogleAuthProvider.credentialFromResult(result);
-            if (!credential){
-                console.error("Error in user Credential")
-                return
-            }
-            const token = credential.accessToken;
-            const user = result.user;
-            console.log(user,token)
-            usenavigate("/index")
-           
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
+            setLoading(true)
+            const userCredential = await signInWithEmailAndPassword(auth, email, password)
+            window.name = String(userCredential.user.email)
+            console.log(window.name)
+            setLoading(false)
+            window.name?
             
-            console.log(error.code);
-    
+            window.location.reload()
+            :
+            message.error("Login Failed")
+        } catch (err:any) {
+            setLoading(false)
+            const errorMessage = err.message;
+            console.log(err.message)
+
+            switch (err.code) {
+                case "auth/invalid-email":
+                message.error("This email address is invalid.");
+                break;
+                case "auth/user-disabled":
+                message.error(
+                    "This email address is disabled by the administrator."
+                );
+                break;
+                case "auth/user-not-found":
+                message.error("This email address is not registered.");
+                break;
+                case "auth/wrong-password":
+                message.error("The password is invalid or the user does not have a password.")
+                break;
+                default:
+                message.error(errorMessage);
+                break;
+            
         }
-      };
+    }
+}
     return(
         <div style={{display:"flex", padding:"1.25rem", height:"100svh"}}>
 
             <div className="desktop-only" style={{border:'', flex:1, background:"linear-gradient(darkslateblue, midnightblue)", alignItems:"flex-end", borderRadius:"1rem"}}>
                 
-                <div style={{display:"flex", border:'', alignItems:"center", margin:"2.5rem", gap:"0.75rem"}}>
-                <CarFront color="salmon" width={"4rem"} height={"4rem"}/>
+                    <div style={{display:"flex", border:'', alignItems:"center", margin:"2rem", gap:"1rem"}}>
+                        
+                        <img src="/logo.svg" style={{width:"4rem", border:""}}/>
+                        
 
-                    <div style={{display:"flex", flexFlow:"column"}}>
-                    <p style={{fontWeight:400, fontSize:"2.25rem"}}>CarLog</p>
+                        <div style={{display:"flex", flexFlow:"column"}}>
+                        <p style={{fontWeight:400, fontSize:"2.25rem"}}>CarLog</p>
 
-                </div>
+                    </div>
                 
                 </div>
                 
@@ -60,8 +94,9 @@ export default function Login(){
                 <p style={{ top:0, left:0, fontSize:"2rem", fontWeight:"600", border:"", width:"100%", paddingLeft:"0.5rem", marginTop:""}}>LOGIN</p>
                 <br/>
                 
-                    <input type="username" placeholder="Email Address"/>
-                    <input type="password" placeholder="Password"/>
+                    <input autoComplete="email" id="email" onChange={(e:any)=>{setEmail(e.target.value);console.log()}} type="email" placeholder="Email Address"/>
+
+                    <input id="password" onChange={(e:any)=>{setPassword(e.target.value)}} type="password" placeholder="Password"/>
                     <p/>
                     <div style={{display:"flex", alignItems:"center", gap:"0.5rem", width:'100%', justifyContent:"", paddingRight:"1rem", paddingLeft:"1rem"}}>
                     <Checkbox/>
@@ -70,7 +105,15 @@ export default function Login(){
                     
                     
                     <p/>
-                    <button onClick={()=>message.info("Login functionality is curently unavailable please use developer key")} style={{background:"midnightblue"}}>LOGIN
+                    <button onClick={handleLoginIn} style={{background:"midnightblue"}}>
+                        {
+                            loading?
+                            <LoadingOutlined/>
+                            :
+                            ""
+                        }
+                        
+                        LOGIN
                         <ChevronRight width={"0.75rem"}/>
                     </button>
                 </div>
@@ -86,10 +129,6 @@ export default function Login(){
                         Developer Key
                     </Button>
 
-                    <Button onClick={SignUpWithGoogle} variant={"ghost"}>
-                        <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width={"25rem"}/>
-                        Continue with Google
-                    </Button>
                 </div>
 
                 </div>
