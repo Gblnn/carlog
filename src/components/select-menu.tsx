@@ -10,6 +10,7 @@ interface Props{
     onChange?:any
     placeholder?:string
     selectedDb?:any
+    defaultValue?:string
 }
 
 export default function SelectMenu(props:Props){
@@ -49,7 +50,7 @@ export default function SelectMenu(props:Props){
 
     
     return(
-        <Select defaultValue="" onValueChange={props.onChange}>
+        <Select defaultValue={props.defaultValue} onValueChange={props.onChange}>
             <SelectTrigger style={{background:"rgba(100 100 100/ 35%)", fontSize:"1rem", paddingLeft:"1rem", opacity:0.75, display:"flex", justifyContent:"space-between", border:"", fontWeight:400, borderRadius:""}}>
                 {
                     fetchingData?

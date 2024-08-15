@@ -1,8 +1,8 @@
 import { LoadingOutlined } from '@ant-design/icons'
 import { ConfigProvider, DatePicker, DatePickerProps, message, theme } from 'antd'
-import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
-import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, EllipsisVerticalIcon, File, FilePlus, Fuel, Globe, PackageOpen, PenLine, RadioTower, RefreshCcw, Trash, User, UserCircle, Wrench } from "lucide-react"
+import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, DownloadCloud, EllipsisVerticalIcon, File, FileDown, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, UploadCloud, User, UserCircle, UserCog2, Wrench } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -17,6 +17,9 @@ import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import ManualSelect from './manual-select'
 import SelectMenu from './select-menu'
+import moment from 'moment'
+import * as XLSX from '@e965/xlsx'
+import { saveAs } from 'file-saver'
 
 interface Props{
     title?:string
@@ -37,6 +40,8 @@ export default function DbComponent(props:Props){
     
     // BASIC PAGE VARIABLES
     const [records, setRecords] = useState<any>([])
+    const [file, setFile] = useState(null)
+    const [jsonData, setJsonData] = useState<any>([])
     const [maintenance, setMaintenance] = useState<any>([])
     const [owners, setOwners] = useState<any>([])
     const [id, setID] = useState("")
@@ -45,6 +50,7 @@ export default function DbComponent(props:Props){
     const [deleteDbDialog, setDeleteDbDialog] = useState(false)
     const [maintenanceDialog, setMaintenanceDialog] = useState(false)
     const [logDate, setLogDate] = useState("")
+    const [ownershipDialog, setOwnershipDialog] = useState(false)
 
     const [vehicleNumber, setVehicleNumber] = useState("")
     const [vehicleName, setVehicleName] = useState("")
@@ -107,6 +113,7 @@ export default function DbComponent(props:Props){
     const [ownerID, setOwnerID] = useState("")
     const [ownerName, setOwnerName] = useState("")
 
+    const [uploadDialog, setUploadDialog] = useState(false)
 
 {/* ///////////////////////////////////////////////////////////////////////////////////////////////////////*/}
 
@@ -206,17 +213,28 @@ export default function DbComponent(props:Props){
         try {
             setLoading(true)
             setMaintenance([])
+            
             const RecordCollection = collection(db, "maintenance")
-            const recordQuery = query(RecordCollection, orderBy("created_on"), where("db", "==", props.db), where("carName","==",vehicleName))
+            const recordQuery = query(RecordCollection, orderBy("created_on", "desc"), where("db", "==", props.db), where("carName","==",vehicleName))
             const querySnapshot = await getDocs(recordQuery)
             const fetchedData:any = [];
 
             querySnapshot.forEach((doc:any)=>{
                 fetchedData.push({id: doc.id, ...doc.data()})    
-            })
-
-        
+            })        
             setMaintenance(fetchedData)
+
+            // const Record = collection(db, "vehicles")
+            // const Query = query(Record, orderBy("created_on", "desc"), where("db", "==", props.db), where("carName","==",vehicleName))
+            // const Snapshot = await getDocs(Query)
+            // const Data:any = [];
+
+            // Snapshot.forEach((doc:any)=>{
+            //     Data.push({id: doc.id, ...doc.data()})    
+            // })        
+            // setMaintenance(Data)
+
+
             setLoading(false)
         } catch (error) {
             setLoading(false)
@@ -300,7 +318,7 @@ export default function DbComponent(props:Props){
                 type:logType, 
                 db:props.db,
                 carName:carName,
-                carNumber:"",
+                carNumber:'',
                 description:description, 
                 amount:amount,
                 date:logDate
@@ -308,6 +326,7 @@ export default function DbComponent(props:Props){
 
             setLoading(false)
             fetchData()
+            fetchMaintenance()
             setResetTags(!resetTags)
             setLogDialog(false)
             
@@ -346,7 +365,7 @@ export default function DbComponent(props:Props){
             const newVal = [...checked]
             newVal.splice(index, 1)
             setChecked(newVal)
-        }   
+        }
     }
 
     const handleBulkDelete = async () => {
@@ -364,13 +383,13 @@ export default function DbComponent(props:Props){
 
                 if(checked.length==counts){
                     setLoading(false)
-                    
                     setBulkDeleteDialog(false)
                     setAddButtonModeSwap(false)
                     setSelectable(false)
                     fetchData()
                     setProgress("")
                 }
+
             });
 
             
@@ -403,7 +422,7 @@ export default function DbComponent(props:Props){
     }
 
     const onChange: DatePickerProps['onChange'] = (date, dateString) => {
-        console.log(date, dateString);
+        console.log(date)
         setLogDate(String(dateString))
       };
 
@@ -419,6 +438,140 @@ export default function DbComponent(props:Props){
             setLoading(false)
         }
     }
+
+    const updateOwner = async () => {
+        try {
+            setLoading(true)
+            await updateDoc(doc(db, "vehicles", id),{vehicleOwner:editedVehicleOwner})
+            setVehicleOwner(editedVehicleOwner?editedVehicleOwner:vehicleOwner)
+            setLoading(false)
+            setOwnershipDialog(false)
+            fetchData()
+        } catch (error) {
+            setLoading(false)
+        }
+    }
+
+    const handleImport = () => {
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e:any) => {
+            const data = e.target.result;
+            const workbook = XLSX.read(data, { type: "binary", cellDates:true, dateNF:"DD/MM/YYYY" });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet);
+            const string = (JSON.stringify(json, null, 2));
+            setJsonData(JSON.parse(string))
+          };
+          reader.readAsArrayBuffer(file);
+        
+        }
+      };
+
+    
+    const uploadJson = () => {
+        
+            setLoading(true)
+            jsonData.forEach((e:any) => {
+                
+                e.type = props.dbCategory
+                e.created_on = new Date()
+                e.modified_on = new Date()
+                e.notify = true
+                e.state = "active"
+
+                e.dateofJoin?
+                e.dateofJoin = moment(e.dateofJoin).format("DD/MM/YYYY")
+                :{}
+
+                e.civil_expiry?
+                e.civil_expiry = Timestamp.fromDate(new Date(e.civil_expiry))
+                :{}
+                
+                e.license_expiry?
+                e.license_expiry = Timestamp.fromDate(new Date(e.license_expiry))
+                :{}
+
+                e.medical_due_on?
+                e.medical_due_on = Timestamp.fromDate(new Date(e.medical_due_on))
+                :{}
+
+                e.passportExpiry?
+                e.passportExpiry = Timestamp.fromDate(new Date(e.passportExpiry))
+                :{}
+                
+                e.civil_DOB?
+                e.civil_DOB = moment(e.civil_DOB).format("DD/MM/YYYY")
+                :{}
+
+                e.license_issue?
+                e.license_issue = moment(e.license_issue).format("DD/MM/YYYY")
+                :{}
+
+                e.medical_completed_on?
+                e.medical_completed_on = moment(e.medical_completed_on).format("DD/MM/YYYY")
+                :{}
+
+                e.passportIssue?
+                e.passportIssue = moment(e.passportIssue).format("DD/MM/YYYY")
+                :{}
+
+            
+
+
+                e.salaryBasic = e.initialSalary
+                e.allowance = e.initialAllowance
+
+                e.vt_hse_induction = ""
+                e.vt_car_1 = ""
+                e.vt_car_2 = ""
+                e.vt_car_3 = ""
+                e.vt_car_4 = ""
+                e.vt_car_5 = ""
+                e.vt_car_6 = ""
+                e.vt_car_7 = ""
+                e.vt_car_8 = ""
+                e.vt_car_9 = ""
+                e.vt_car_10 = ""
+
+        
+            });
+            jsonData.forEach(async (e:any) => {
+                await addDoc(collection(db, "records"), e)
+            });
+            
+            setLoading(false)
+            setUploadDialog(false)
+            fetchData()
+    }
+
+    const fetchBlank = async () => {
+        try {
+            setLoading(true)
+
+            const myHeader = ["name","employeeCode","companyName","email","contact","dateofJoin","nativeAddress","nativePhone","initialSalary","initialAllowance","civil_number","civil_DOB", "civil_expiry", "license_number","license_issue", "license_expiry","medical_completed_on" ,"medical_due_on","passportID","passportIssue", "passportExpiry", "vt_hse_induction", "vt_car_1", "vt_car_2", "vt_car_3", "vt_car_4", "vt_car_5", "vt_car_6", "vt_car_7", "vt_car_8", "vt_car_9", "vt_car_10"];
+
+            const Header = ["name","employeeCode","companyName","email","contact","dateofJoin","nativeAddress","nativePhone","initialSalary","initialAllowance","civil_number","civil_DOB", "civil_expiry", "license_number","license_issue", "license_expiry","medical_completed_on" ,"medical_due_on","passportID","passportIssue", "passportExpiry"]
+
+        const worksheet = XLSX.utils.json_to_sheet([{}], {header: props.dbCategory=="personal"?Header: myHeader});
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+
+        // Buffer to store the generated Excel file
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8' });
+
+        saveAs(blob, "Template.xlsx");
+            setLoading(false)
+        } catch (error) {
+            setLoading(false)
+        }
+    }
+
+
+    
 
 
     return(
@@ -470,7 +623,7 @@ export default function DbComponent(props:Props){
 
                         </button>
 
-                        <DbDropDown trigger={<EllipsisVerticalIcon width={"1rem"}/>} onDeleteDatabase={()=>setDeleteDbDialog(true)}/>
+                        <DbDropDown trigger={<EllipsisVerticalIcon width={"1rem"}/>} onDeleteDatabase={()=>setDeleteDbDialog(true)} onUpload={()=>setUploadDialog(true)}/>
 
 
                             {/* <button onClick={()=>usenavigate("/inbox")} style={{ width:"3rem", background:"rgba(220 20 60/ 20%)"}}>
@@ -630,6 +783,7 @@ export default function DbComponent(props:Props){
                                 status
 
                                 id_subtitle={selectedDb=="maintenance"?post.carName:""}
+                                subtext={selectedDb=="maintenance"?post.description?post.description:"No Description":""}
                             
                                 // ON CLICK
                                 onSelect={()=>{
@@ -704,11 +858,74 @@ export default function DbComponent(props:Props){
 
             {/* Dialog Boxes 👇*/}
 
+            <DefaultDialog open={uploadDialog} created_on={jsonData.length==0?"":""+jsonData.length} title={"Upload"} titleIcon={<UploadCloud color="salmon"/>} codeIcon={<File width={"0.8rem"}/>} code=".xls, .xlsx" OkButtonText="Upload" onCancel={()=>{setUploadDialog(false);setFile(null);setJsonData([])}} disabled={jsonData.length>0?false:true}
+            updating={loading}
+            onOk={uploadJson}
+            title_extra={
+                <div style={{display:'flex', flexFlow:"column", gap:"0.5rem"}}>
+                    <button onClick={fetchBlank} style={{fontSize:"0.8rem", height:"2rem", paddingLeft:"1rem", paddingRight:"1rem"}}>
+                        {
+                            <>
+                            <FileDown color="lightgreen" width={"1rem"}/>
+                            Template
+                            </>
+                            
+                            
+                        }
+                        
+                    </button>
+                
+                </div>
+            
+        }
+            extra={
+
+                <>
+
+                {
+                    jsonData.length==0?
+                    <div style={{width:"100%", border:"3px dashed rgba(100 100 100/ 50%)", height:"2.5rem",borderRadius:"0.5rem", marginBottom:"0.5rem"}}></div>
+                    :
+                    <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:"0.5rem"}}>
+                        {
+                        jsonData.map((e:any)=>(
+                            <motion.div key={e.contact} initial={{opacity:0}} whileInView={{opacity:1}}>
+                            <Directive status={true} 
+                            onClick={()=>{}}
+                            title={e.name} titleSize="0.75rem" key={e.id} icon={<UserCircle width={"1.25rem"} color="salmon"/>} />
+                            </motion.div>
+                        ))
+                        }
+                    </div>
+                }
+
+
+
+                <div style={{display:"flex", gap:"0.5rem", width:"100%"}}>
+                <input style={{fontSize:"0.8rem"}} type="file" accept=".xls, .xlsx" onChange={(e:any)=>setFile(e.target.files[0])}/>
+                <button className={file?"":"disabled"} onClick={()=>{jsonData.length>0?setJsonData([]):handleImport()}} style={{fontSize:"0.8rem", paddingRight:"1rem", paddingLeft:"1rem"}}>{jsonData.length>0?"Clear":"Add"}</button>
+                </div>
+                </>
+
+
+                
+                
+            }/>
+
             <DefaultDialog open={ownerSummary} onCancel={()=>setOwnerSummary(false)} title={ownerName} OkButtonText='Remove' destructive code={ownerID} onOk={deleteOwner} updating={loading} disabled={loading}/>
 
-            <DefaultDialog close titleIcon={<Wrench color='dodgerblue'/>} title={"Maintenance"} open={maintenanceDialog} onCancel={()=>setMaintenanceDialog(false)}
+
+            {/* MAINTENANCE DIALOG */}
+            <DefaultDialog close  code={vehicleNumber} title={"Maintenance"} open={maintenanceDialog} onCancel={()=>setMaintenanceDialog(false)}
             title_extra={
-                <button onClick={fetchMaintenance} style={{width:"2.75rem", height:"2.5rem"}}>
+
+                <div style={{display:"flex", gap:"0.5rem", border:"", height:"2.5rem"}}>
+                    
+                    <button style={{paddingLeft:"0.75rem", paddingRight:"0.75rem"}}><DownloadCloud color='lightgreen' width={"1.25rem"}/></button>
+
+                    <button onClick={()=>setLogDialog(true)} style={{paddingLeft:"0.75rem", paddingRight:"0.75rem"}}><Plus color='dodgerblue' width={"1.25rem"}/></button>
+
+                    <button className='blue-glass' onClick={fetchMaintenance} style={{width:"2.75rem", height:""}}>
                     {
                         loading?
                         <LoadingOutlined/>
@@ -716,7 +933,9 @@ export default function DbComponent(props:Props){
                         <RefreshCcw width={"1rem"} color='dodgerblue'/>
                     }
                     
-                </button>
+                    </button>
+                </div>
+                
             }
             extra={
                 maintenance.length==0?
@@ -725,7 +944,7 @@ export default function DbComponent(props:Props){
                     <div className="recipients" style={{width:"100%", display:"flex", flexFlow:"column", gap:"0.35rem", maxHeight:"11.25rem", overflowY:"auto", paddingRight:"0.5rem", minHeight:"2.25rem", marginBottom:""}}>
                     {
                         maintenance.map((e:any)=>(
-                            <Directive id_subtitle={e.date} key={e.id} title={e.type} tag={e.amount} status
+                            <Directive id_subtitle={e.description?e.description:"No Description"} subtext={e.date} key={e.id} title={e.type} tag={e.amount} status
                             icon={
                                 e.type=="fuel"?
                                 <Fuel width={"1.1rem"} color='goldenrod'/>
@@ -852,7 +1071,7 @@ export default function DbComponent(props:Props){
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
 
-                    <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status noArrow/>
+                    <Directive icon={<User width={"1.1rem"} color='dodgerblue'/>} title='Owner' tag={vehicleOwner} status onClick={()=>{setOwnershipDialog(true)}}/>
                     <Directive icon={<CalendarDaysIcon width={"1.1rem"} color='dodgerblue'/>} title='Model Number' tag={modelNumber} status noArrow/>
                     <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
 
@@ -862,6 +1081,13 @@ export default function DbComponent(props:Props){
                     
                 </div>
             } 
+            />
+
+            <DefaultDialog updating={loading} disabled={loading} created_on={vehicleOwner} titleIcon={<UserCog2 color='dodgerblue'/>} open={ownershipDialog} title={"Owner"} onCancel={()=>setOwnershipDialog(false)} OkButtonText='Update'
+            extra={
+                <SelectMenu onChange={setEditedVehicleOwner} db='owners' placeholder='Select New Owner' selectedDb={props.db}/>
+            }
+            onOk={updateOwner}
             />
 
             {/* ADD ITEM DIALOG */}
@@ -959,8 +1185,11 @@ export default function DbComponent(props:Props){
                     
                     <div style={{display:"flex", gap:"0.25rem", paddingLeft:"1rem", fontSize:"4rem", alignItems:'center', borderTop:"1px solid rgba(100 100 100/ 50%)", paddingTop:"1rem", flexFlow:"column", marginBottom:"1rem"}}>
                         
+                        <div style={{margin:"1rem"}}>
                         <p style={{fontSize:"1rem", opacity:0.5, border:"", height:"1.5rem"}}>OMR</p>
                         <p style={{border:'', height:"3.5rem", display:"flex", alignItems:"center"}}>{amount}</p>
+                        </div>
+                        
                         
                         
                     </div>

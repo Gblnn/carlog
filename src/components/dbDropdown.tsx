@@ -7,6 +7,8 @@ interface Props{
     onExport?:any
     onAccess?:any
     onArchives?:any
+    onUpload?:any
+    onDownload?:any
     onDeleteDatabase?:any
     className?:any
 }
@@ -24,12 +26,12 @@ export default function DbDropDown(props:Props){
         
         <DropdownMenuGroup>
 
-        <DropdownMenuItem onClick={props.onDeleteDatabase} style={{width:"100%"}}>
+        <DropdownMenuItem onClick={props.onUpload} style={{width:"100%"}}>
             <UploadCloud className="mr-2 " color="salmon" />
             <span style={{width:"100%"}}>Upload Data</span>
           </DropdownMenuItem>
 
-          <DropdownMenuItem onClick={props.onDeleteDatabase} style={{width:"100%"}}>
+          <DropdownMenuItem onClick={props.onDownload} style={{width:"100%"}}>
             <DownloadCloud className="mr-2 " color="lightgreen" />
             <span style={{width:"100%"}}>Download Data</span>
           </DropdownMenuItem>
