@@ -99,7 +99,7 @@ export default function IndexComponent(props:Props){
 
 
 
-                        <IndexDropdown onInbox={()=>usenavigate("/inbox")} onArchives={()=>usenavigate("/archives")} onAccess={()=>usenavigate("/access-control")} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
+                        <IndexDropdown onInbox={()=>usenavigate("/")} onArchives={()=>usenavigate("/archives")} onAccess={()=>usenavigate("/access-control")} trigger={<EllipsisVerticalIcon width={"1.1rem"}/>}/>
 
                         {/* <button onClick={()=>{signOut(auth).then(()=>{usenavigate("/")}).catch((e)=>message.error(String(e.message)));}} style={{width:"3rem"}}><LogOut width={"1rem"} color='lightcoral'/></button> */}
                         

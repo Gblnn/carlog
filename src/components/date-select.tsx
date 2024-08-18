@@ -15,13 +15,16 @@ import { useState } from "react"
 
 interface Props{
   onChange?:any
+  value?:any
 }
 
 export default function DateSelect(props:Props) {
 
-  
+
 
   const [date, setDate] = useState<Date>()
+
+
 
   return (
     <Popover>
@@ -36,11 +39,11 @@ export default function DateSelect(props:Props) {
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {
-          
           date ? moment(date, "PPP").format("DD/MM/YYYY") : <span>Pick a date</span>
-          
           }
-          <input style={{display:"none"}} value={String(moment(date, "PPP").format("DD/MM/YYYY"))} onChange={props.onChange} />
+          
+          
+          <input style={{display:"none"}} value={String(moment(date, "PPP").format("DD/MM/YYYY"))} onChange={props.onChange}/>
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0">

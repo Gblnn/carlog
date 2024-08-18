@@ -1,8 +1,11 @@
 import { LoadingOutlined } from '@ant-design/icons'
+import * as XLSX from '@e965/xlsx'
 import { ConfigProvider, DatePicker, DatePickerProps, message, theme } from 'antd'
+import { saveAs } from 'file-saver'
 import { addDoc, collection, deleteDoc, doc, getDocs, onSnapshot, orderBy, query, Timestamp, updateDoc, where } from 'firebase/firestore'
 import { motion } from 'framer-motion'
 import { CalendarDaysIcon, Car, CarFront, CheckSquare2, ChevronRight, Cog, Database, DownloadCloud, EllipsisVerticalIcon, File, FileDown, FilePlus, Fuel, Globe, PackageOpen, PenLine, Plus, RadioTower, RefreshCcw, Trash, UploadCloud, User, UserCircle, UserCog2, Wrench } from "lucide-react"
+import moment from 'moment'
 import { useEffect, useState } from "react"
 import { useNavigate } from 'react-router-dom'
 import useKeyboardShortcut from 'use-keyboard-shortcut'
@@ -17,9 +20,6 @@ import DbDropDown from './dbDropdown'
 import DropDown from './dropdown'
 import ManualSelect from './manual-select'
 import SelectMenu from './select-menu'
-import moment from 'moment'
-import * as XLSX from '@e965/xlsx'
-import { saveAs } from 'file-saver'
 
 interface Props{
     title?:string
@@ -212,7 +212,7 @@ export default function DbComponent(props:Props){
     const fetchMaintenance = async () => {
         try {
             setLoading(true)
-            setMaintenance([])
+    
             
             const RecordCollection = collection(db, "maintenance")
             const recordQuery = query(RecordCollection, orderBy("created_on", "desc"), where("db", "==", props.db), where("carName","==",vehicleName))
@@ -870,7 +870,6 @@ export default function DbComponent(props:Props){
                             Template
                             </>
                             
-                            
                         }
                         
                     </button>
@@ -1076,7 +1075,7 @@ export default function DbComponent(props:Props){
                     <Directive icon={<CarFront width={"1.1rem"} color='dodgerblue'/>} title='Chasis Number' tag={chasisNumber} status noArrow/>
 
                     <div style={{paddingTop:"0.75rem", borderTop:"1px solid rgba(100 100 100/ 50%)", marginTop:"0.5rem"}}>
-                    <Directive onClick={()=>{setMaintenanceDialog(true);fetchMaintenance()}} title='Maintenance' icon={<Wrench color='dodgerblue' width={"1rem"}/>}/>
+                    <Directive onClick={()=>{setMaintenanceDialog(true);fetchMaintenance();setMaintenance([])}} title='Maintenance' icon={<Wrench color='dodgerblue' width={"1rem"}/>}/>
                     </div>
                     
                 </div>
@@ -1132,7 +1131,7 @@ export default function DbComponent(props:Props){
             extra={
                 <div style={{display:"flex", flexFlow:"column", gap:"0.5rem"}}>
                     
-                    <SelectMenu placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
+                    <SelectMenu defaultValue={vehicleName} placeholder='Select vehicle' db='vehicles' selectedDb={props.db} onChange={setCarName}/>
                     
                     <input onChange={(e:any)=>setAmount(e.target.value)} placeholder='Amount'/>
                     <input onChange={(e:any)=>setDescription(e.target.value)} placeholder='Description'/>
